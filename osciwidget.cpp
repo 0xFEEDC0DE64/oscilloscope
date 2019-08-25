@@ -5,10 +5,6 @@
 #include <QLine>
 
 namespace {
-constexpr auto framerate = 60;
-constexpr auto blend = 190;
-}
-
 template<typename T>
 auto pythagoras(const T &dx, const T &dy)
 {
@@ -19,15 +15,60 @@ auto pythagoras(const QLine &line)
 {
     return pythagoras(line.dx(), line.dy());
 }
-
-OsciWidget::OsciWidget(QWidget *parent) :
-    QWidget(parent), m_timerId(startTimer(1000/framerate))
-{
-    resizePixmap();
-    m_timer.start();
 }
 
-void OsciWidget::samplesReceived(const SamplePair *begin, const SamplePair *end)
+OsciWidget::OsciWidget(QWidget *parent) :
+    QWidget(parent)
+{
+    restartTimer();
+    resizePixmap();
+    createBlendPixmap();
+}
+
+int OsciWidget::framerate() const
+{
+    return m_framerate;
+}
+
+int OsciWidget::blend() const
+{
+    return m_blend;
+}
+
+float OsciWidget::factor() const
+{
+    return m_factor;
+}
+
+void OsciWidget::setFramerate(int framerate)
+{
+    if (framerate == m_framerate)
+        return;
+
+    qDebug() << "change framerate to" << framerate;
+
+    m_framerate = framerate;
+
+    restartTimer();
+}
+
+void OsciWidget::setBlend(int blend)
+{
+    if (blend == m_blend)
+        return;
+
+    qDebug() << "change blend to" << blend;
+
+    m_blend = blend;
+    createBlendPixmap();
+}
+
+void OsciWidget::setFactor(float factor)
+{
+    m_factor = factor;
+}
+
+void OsciWidget::renderSamples(const SamplePair *begin, const SamplePair *end)
 {
     QPainter painter;
     painter.begin(&m_pixmap);
@@ -38,8 +79,8 @@ void OsciWidget::samplesReceived(const SamplePair *begin, const SamplePair *end)
 
     for (auto i = begin; i < end; i++)
     {
-        const qint32 x = (float(i->x) / std::numeric_limits<qint16>::max() / 2 * width() * 2) + (width() / 2);
-        const qint32 y = (float(-i->y) / std::numeric_limits<qint16>::max() / 2 * height() * 2) + (height() / 2);
+        const qint32 x = (float(i->x) / std::numeric_limits<qint16>::max() / 2 * width() / 2 * m_factor) + (width() / 2);
+        const qint32 y = (float(-i->y) / std::numeric_limits<qint16>::max() / 2 * height() / 2 * m_factor) + (height() / 2);
         const QPoint p{x,y};
 
         if (Q_LIKELY(m_lastPoint.has_value()))
@@ -58,12 +99,6 @@ void OsciWidget::samplesReceived(const SamplePair *begin, const SamplePair *end)
     }
 
     painter.end();
-
-    if (m_timer.hasExpired(1000/framerate))
-    {
-        repaint();
-        m_timer.restart();
-    }
 }
 
 void OsciWidget::paintEvent(QPaintEvent *event)
@@ -85,7 +120,7 @@ void OsciWidget::timerEvent(QTimerEvent *event)
 {
     if (event->timerId() == m_timerId)
     {
-        //repaint();
+        repaint();
     }
     else
         QWidget::timerEvent(event);
@@ -96,13 +131,25 @@ void OsciWidget::resizeEvent(QResizeEvent *event)
     Q_UNUSED(event)
 
     resizePixmap();
+    createBlendPixmap();
+}
+
+void OsciWidget::restartTimer()
+{
+    if (m_timerId != -1)
+        killTimer(m_timerId);
+
+    m_timerId = startTimer(1000/m_framerate);
 }
 
 void OsciWidget::resizePixmap()
 {
     m_pixmap = QPixmap(size());
     m_pixmap.fill(QColor());
+}
 
+void OsciWidget::createBlendPixmap()
+{
     m_fadeoutPixmap = QPixmap(size());
-    m_fadeoutPixmap.fill(QColor(blend, blend, blend));
+    m_fadeoutPixmap.fill(QColor(m_blend, m_blend, m_blend));
 }

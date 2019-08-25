@@ -19,8 +19,16 @@ class OsciWidget : public QWidget
 public:
     explicit OsciWidget(QWidget *parent = nullptr);
 
+    int framerate() const;
+    int blend() const;
+    float factor() const;
+
 public slots:
-    void samplesReceived(const SamplePair *begin, const SamplePair *end);
+    void setFramerate(int framerate);
+    void setBlend(int blend);
+    void setFactor(float factor);
+
+    void renderSamples(const SamplePair *begin, const SamplePair *end);
 
 protected:
     void paintEvent(QPaintEvent *event) override;
@@ -28,13 +36,17 @@ protected:
     void resizeEvent(QResizeEvent *event) override;
 
 private:
+    void restartTimer();
     void resizePixmap();
+    void createBlendPixmap();
 
-    const int m_timerId;
+    int m_timerId{-1};
+    int m_framerate{15};
+    int m_blend{190};
+    float m_factor{4.f};
+
     QPixmap m_pixmap;
     QPixmap m_fadeoutPixmap;
 
     std::optional<QPoint> m_lastPoint;
-
-    QElapsedTimer m_timer;
 };
