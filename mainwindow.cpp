@@ -36,22 +36,30 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(m_ui.spinBoxBlend, qOverload<int>(&QSpinBox::valueChanged), m_ui.widget, &OsciWidget::setBlend);
 
+    enum { Button50, Button100, Button200, Button400 };
+
     auto buttonGroup = new QButtonGroup;
     buttonGroup->setExclusive(true);
-    buttonGroup->addButton(m_ui.radioButtonScale50, 0);
-    buttonGroup->addButton(m_ui.radioButtonScale100, 1);
-    buttonGroup->addButton(m_ui.radioButtonScale200, 2);
-    buttonGroup->addButton(m_ui.radioButtonScale400, 3);
+    buttonGroup->addButton(m_ui.radioButtonScale50, Button50);
+    buttonGroup->addButton(m_ui.radioButtonScale100, Button100);
+    buttonGroup->addButton(m_ui.radioButtonScale200, Button200);
+    buttonGroup->addButton(m_ui.radioButtonScale400, Button400);
+
+    const auto factor = m_ui.widget->factor();
+    if (factor == .5f) buttonGroup->button(Button50)->click();
+    else if (factor == 1.f) buttonGroup->button(Button100)->click();
+    else if (factor == 2.f) buttonGroup->button(Button200)->click();
+    else if (factor == 4.f) buttonGroup->button(Button400)->click();
 
     connect(buttonGroup, qOverload<int>(&QButtonGroup::buttonClicked), this, [&widget=*m_ui.widget](int index){
         float factor;
 
         switch (index)
         {
-        case 0: factor = .5f; break;
-        case 1: factor = 1.f; break;
-        case 2: factor = 2.f; break;
-        case 3: factor = 4.f; break;
+        case Button50: factor = .5f; break;
+        case Button100: factor = 1.f; break;
+        case Button200: factor = 2.f; break;
+        case Button400: factor = 4.f; break;
         default: Q_UNREACHABLE();
         }
 
