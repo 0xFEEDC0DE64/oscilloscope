@@ -4,6 +4,9 @@
 #include <QAudioFormat>
 #include <QAudioDeviceInfo>
 #include <QButtonGroup>
+#include <QMessageBox>
+#include <QStringBuilder>
+#include <QRadioButton>
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -36,41 +39,29 @@ MainWindow::MainWindow(QWidget *parent) :
 
     connect(m_ui.spinBoxBlend, qOverload<int>(&QSpinBox::valueChanged), m_ui.widget, &OsciWidget::setBlend);
 
-    enum { Button50, Button100, Button200, Button400 };
-
     auto buttonGroup = new QButtonGroup;
-    buttonGroup->setExclusive(true);
-    buttonGroup->addButton(m_ui.radioButtonScale50, Button50);
-    buttonGroup->addButton(m_ui.radioButtonScale100, Button100);
-    buttonGroup->addButton(m_ui.radioButtonScale200, Button200);
-    buttonGroup->addButton(m_ui.radioButtonScale400, Button400);
+    buttonGroup->setExclusive(true);    
+    for (auto factor : { .5f, 1.f, 2.f, 4.f, 8.f })
+    {
+        auto radioButton = new QRadioButton(QString::number(factor));
+        connect(radioButton, &QRadioButton::pressed, this, [factor,&widget=*m_ui.widget](){
+            widget.setFactor(factor);
+        });
+        m_ui.horizontalLayout->addWidget(radioButton);
+    }
 
-    const auto factor = m_ui.widget->factor();
-    if (factor == .5f) buttonGroup->button(Button50)->click();
-    else if (factor == 1.f) buttonGroup->button(Button100)->click();
-    else if (factor == 2.f) buttonGroup->button(Button200)->click();
-    else if (factor == 4.f) buttonGroup->button(Button400)->click();
-
-    connect(buttonGroup, qOverload<int>(&QButtonGroup::buttonClicked), this, [&widget=*m_ui.widget](int index){
-        float factor;
-
-        switch (index)
-        {
-        case Button50: factor = .5f; break;
-        case Button100: factor = 1.f; break;
-        case Button200: factor = 2.f; break;
-        case Button400: factor = 4.f; break;
-        default: Q_UNREACHABLE();
-        }
-
-        widget.setFactor(factor);
-    });
-
-    toggle();
+    if (m_ui.comboBoxDevices->count())
+        toggle();
 }
 
 void MainWindow::toggle()
 {
+    if (!m_ui.comboBoxDevices->count())
+    {
+        QMessageBox::warning(this, tr("Failed to start!"), tr("Failed to start!") % "\n\n" % tr("No audio devices available!"));
+        return;
+    }
+
     if (m_input)
     {
         m_input = nullptr;

@@ -88,34 +88,6 @@
         </property>
        </spacer>
       </item>
-      <item>
-       <widget class="QRadioButton" name="radioButtonScale50">
-        <property name="text">
-         <string>X.5</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="radioButtonScale100">
-        <property name="text">
-         <string>X1</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="radioButtonScale200">
-        <property name="text">
-         <string>X2</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QRadioButton" name="radioButtonScale400">
-        <property name="text">
-         <string>X4</string>
-        </property>
-       </widget>
-      </item>
      </layout>
     </item>
     <item>
