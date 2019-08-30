@@ -46,7 +46,6 @@ private:
     float m_factor{4.f};
 
     QPixmap m_pixmap;
-    QPixmap m_fadeoutPixmap;
 
     std::optional<QPoint> m_lastPoint;
 };

@@ -22,7 +22,6 @@ OsciWidget::OsciWidget(QWidget *parent) :
 {
     restartTimer();
     resizePixmap();
-    createBlendPixmap();
 }
 
 int OsciWidget::framerate() const
@@ -60,7 +59,6 @@ void OsciWidget::setBlend(int blend)
     qDebug() << "change blend to" << blend;
 
     m_blend = blend;
-    createBlendPixmap();
 }
 
 void OsciWidget::setFactor(float factor)
@@ -109,10 +107,11 @@ void OsciWidget::paintEvent(QPaintEvent *event)
     painter.begin(this);
     painter.drawPixmap(0, 0, m_pixmap);
     painter.end();
+    // Fade pixmap by multiplying all pixels by m_blend
 
     painter.begin(&m_pixmap);
     painter.setCompositionMode(QPainter::CompositionMode_Multiply);
-    painter.drawPixmap(0, 0, m_fadeoutPixmap);
+    painter.fillRect(m_pixmap.rect(), QColor(m_blend,m_blend,m_blend));
     painter.end();
 }
 
@@ -131,7 +130,6 @@ void OsciWidget::resizeEvent(QResizeEvent *event)
     Q_UNUSED(event)
 
     resizePixmap();
-    createBlendPixmap();
 }
 
 void OsciWidget::restartTimer()
@@ -142,14 +140,11 @@ void OsciWidget::restartTimer()
     m_timerId = startTimer(1000/m_framerate);
 }
 
+{
+}
+
 void OsciWidget::resizePixmap()
 {
     m_pixmap = QPixmap(size());
     m_pixmap.fill(QColor());
-}
-
-void OsciWidget::createBlendPixmap()
-{
-    m_fadeoutPixmap = QPixmap(size());
-    m_fadeoutPixmap.fill(QColor(m_blend, m_blend, m_blend));
 }
