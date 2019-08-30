@@ -96,6 +96,9 @@ void MainWindow::toggle()
         format.setCodec("audio/pcm");
         format.setByteOrder(QAudioFormat::LittleEndian);
 
+        if(m_audioDevices.empty()){
+            qFatal("No audio devices found");
+        }
         m_input = std::make_unique<QAudioInput>(m_audioDevices.at(m_ui.comboBoxDevices->currentIndex()), format);
         m_input->start(&m_device);
         m_input->setBufferSize(format.sampleRate()/60*sizeof(qint16)*2);
