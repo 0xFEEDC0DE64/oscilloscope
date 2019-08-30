@@ -4,19 +4,6 @@
 
 #include <QLine>
 
-namespace {
-template<typename T>
-auto pythagoras(const T &dx, const T &dy)
-{
-    return std::sqrt(dx * dx + dy * dy);
-}
-
-auto pythagoras(const QLine &line)
-{
-    return pythagoras(line.dx(), line.dy());
-}
-}
-
 OsciWidget::OsciWidget(QWidget *parent) :
     QWidget(parent)
 {
@@ -74,22 +61,26 @@ void OsciWidget::renderSamples(const SamplePair *begin, const SamplePair *end)
 
     QPen pen;
     pen.setWidth(2);
+    pen.setColor(QColor(0, 255, 0));
+    painter.setPen(pen);
+
+    // Paint from center
+    painter.translate(width()/2, height()/2);
 
     for (auto i = begin; i < end; i++)
     {
-        const qint32 x = (float(i->x) / std::numeric_limits<qint16>::max() / 2 * width() / 2 * m_factor) + (width() / 2);
-        const qint32 y = (float(-i->y) / std::numeric_limits<qint16>::max() / 2 * height() / 2 * m_factor) + (height() / 2);
-        const QPoint p{x,y};
+        const qreal x = (qreal(i->x) / std::numeric_limits<qint16>::max() / 2 * width() / 2 * m_factor);
+        const qreal y = (qreal(i->y) / std::numeric_limits<qint16>::max() / 2 * height() / 2 * m_factor);
+        const QPointF p{x, y};
 
         if (Q_LIKELY(m_lastPoint.has_value()))
         {
-            auto dist = pythagoras(QLine(*m_lastPoint, p));
-            if (dist < 1)
-                dist = 1;
+            auto speed = QLineF(*m_lastPoint, p).length();
+            if (speed < 1)
+                speed = 1;
+            auto brightness = 1./speed;
 
-            pen.setColor(QColor(0, 1./dist*255, 0));
-            painter.setPen(pen);
-
+            painter.setOpacity(brightness);
             painter.drawLine(*m_lastPoint, p);
         }
 

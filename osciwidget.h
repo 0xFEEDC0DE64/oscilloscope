@@ -49,5 +49,5 @@ private:
 
     QPixmap m_pixmap;
 
-    std::optional<QPoint> m_lastPoint;
+    std::optional<QPointF> m_lastPoint;
 };
