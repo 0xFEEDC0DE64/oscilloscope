@@ -16,7 +16,15 @@ MainWindow::MainWindow(QWidget *parent) :
     //connect(&m_fakeDevice, &FakeDevice::samplesReceived, m_ui.widget, &OsciWidget::samplesReceived);
 
     for (const auto &device : m_audioDevices)
-        m_ui.comboBoxDevices->addItem(device.deviceName());
+    {
+        auto name = device.deviceName();
+        m_ui.comboBoxDevices->addItem(name);
+        // Select last element containing monitor if available
+        if(name.contains("monitor"))
+        {
+            m_ui.comboBoxDevices->setCurrentIndex(m_ui.comboBoxDevices->count()-1);
+        }
+    }
 
     for (const auto samplerate : { 44100, 48000, 96000, 192000 })
         m_ui.comboBoxSamplerate->addItem(tr("%0").arg(samplerate), samplerate);
