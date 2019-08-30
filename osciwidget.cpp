@@ -26,12 +26,17 @@ float OsciWidget::factor() const
     return m_factor;
 }
 
+float OsciWidget::glow() const
+{
+    return m_glow;
+}
+
 void OsciWidget::setFramerate(int framerate)
 {
     if (framerate == m_framerate)
         return;
 
-    qDebug() << "change framerate to" << framerate;
+    qDebug() << framerate;
 
     m_framerate = framerate;
 
@@ -43,14 +48,21 @@ void OsciWidget::setBlend(int blend)
     if (blend == m_blend)
         return;
 
-    qDebug() << "change blend to" << blend;
+    qDebug() << blend;
 
     m_blend = blend;
 }
 
 void OsciWidget::setFactor(float factor)
 {
+    qDebug() << factor;
     m_factor = factor;
+}
+
+void OsciWidget::setGlow(float glow)
+{
+    qDebug() << glow;
+    m_glow = glow;
 }
 
 void OsciWidget::renderSamples(const SamplePair *begin, const SamplePair *end)
@@ -69,19 +81,30 @@ void OsciWidget::renderSamples(const SamplePair *begin, const SamplePair *end)
 
     for (auto i = begin; i < end; i++)
     {
-        const qreal x = (qreal(i->x) / std::numeric_limits<qint16>::max() / 2 * width() / 2 * m_factor);
-        const qreal y = (qreal(i->y) / std::numeric_limits<qint16>::max() / 2 * height() / 2 * m_factor);
-        const QPointF p{x, y};
+        const QPointF p{
+            float(i->x) / std::numeric_limits<qint16>::max() / 2,
+            float(-i->y) / std::numeric_limits<qint16>::max() / 2
+        };
 
         if (Q_LIKELY(m_lastPoint.has_value()))
         {
-            auto speed = QLineF(*m_lastPoint, p).length();
-            if (speed < 1)
-                speed = 1;
-            auto brightness = 1./speed;
+            const QLineF line(*m_lastPoint, p);
+            
+            auto brightness = 1.f / line.length() / m_glow;
+            if (line.length() == 0.f || brightness > 255.f)
+                brightness = 255.f;
 
             painter.setOpacity(brightness);
-            painter.drawLine(*m_lastPoint, p);
+
+            const auto pointToCoordinates = [this](const QPointF &point)
+            {
+                return QPoint{
+                    int((point.x() * width() / 2 * m_factor)),
+                    int((point.y() * height() / 2 * m_factor))
+                };
+            };
+
+            painter.drawLine(pointToCoordinates(*m_lastPoint), pointToCoordinates(p));
         }
 
         m_lastPoint = p;

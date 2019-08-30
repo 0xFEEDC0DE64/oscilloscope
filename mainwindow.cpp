@@ -30,6 +30,9 @@ MainWindow::MainWindow(QWidget *parent)
         }
     }
 
+    if (m_ui.comboBoxDevices->count())
+        m_ui.comboBoxDevices->setCurrentIndex(m_audioDevices.count()-1);
+
     for (const auto samplerate : { 44100, 48000, 96000, 192000 })
         m_ui.comboBoxSamplerate->addItem(tr("%0").arg(samplerate), samplerate);
 
@@ -47,6 +50,10 @@ MainWindow::MainWindow(QWidget *parent)
     m_ui.spinBoxBlend->setValue(m_ui.widget->blend());
 
     connect(m_ui.spinBoxBlend, qOverload<int>(&QSpinBox::valueChanged), m_ui.widget, &OsciWidget::setBlend);
+
+    m_ui.spinBoxGlow->setValue(m_ui.widget->glow());
+
+    connect(m_ui.spinBoxGlow, qOverload<int>(&QSpinBox::valueChanged), m_ui.widget, &OsciWidget::setGlow);
 
     auto buttonGroup = new QButtonGroup;
     buttonGroup->setExclusive(true);    
