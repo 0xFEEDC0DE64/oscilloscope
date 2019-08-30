@@ -12,6 +12,8 @@ Device::Device(QObject *parent) :
 
 qint64 Device::readData(char *data, qint64 maxlen)
 {
+    Q_UNUSED(data)
+    Q_UNUSED(maxlen)
     qFatal("oida");
 }
 
@@ -24,7 +26,7 @@ qint64 Device::writeData(const char *data, qint64 len)
 }
 
 FakeDevice::FakeDevice(QObject *parent) :
-    QObject(parent), m_timerId(startTimer(1000/60))
+    QObject(parent), m_timerId(startTimer(1000/60)), m_dingsDesHaltHochZaehlt(0)
 {
 }
 
