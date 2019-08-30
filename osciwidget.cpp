@@ -5,7 +5,7 @@
 #include <QLine>
 
 OsciWidget::OsciWidget(QWidget *parent) :
-    QWidget(parent)
+    QOpenGLWidget(parent)
 {
     restartTimer();
     resizePixmap();

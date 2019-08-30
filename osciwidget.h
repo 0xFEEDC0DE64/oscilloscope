@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QWidget>
+
+#include <QOpenGLWidget>
 #include <QDebug>
 #include <QPainter>
 #include <QPixmap>
@@ -12,7 +14,7 @@
 
 #include "device.h"
 
-class OsciWidget : public QWidget
+class OsciWidget : public QOpenGLWidget
 {
     Q_OBJECT
 
