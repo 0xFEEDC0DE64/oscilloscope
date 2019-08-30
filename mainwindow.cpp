@@ -1,109 +1,98 @@
 #include "mainwindow.h"
+#include "ui_mainwindow.h"
 
-#include <QAudioInput>
-#include <QAudioFormat>
-#include <QAudioDeviceInfo>
+// Qt includes
 #include <QButtonGroup>
 #include <QMessageBox>
 #include <QStringBuilder>
 #include <QRadioButton>
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , m_audioDevices(QAudioDeviceInfo::availableDevices(QAudio::AudioInput))
-    , m_ui()
+// local includes
+#include "audiodevice.h"
+#include "fakedevice.h"
+
+MainWindow::MainWindow(QWidget *parent) :
+    QMainWindow{parent},
+    m_ui{std::make_unique<Ui::MainWindow>()},
+    m_audioDevices{QAudioDeviceInfo::availableDevices(QAudio::AudioInput)},
+    m_input{std::make_unique<AudioDevice>()}
+    //m_input{std::make_unique<FakeDevice>()}
 {
-    m_ui.setupUi(this);
+    m_ui->setupUi(this);
 
-    connect(&m_device, &Device::samplesReceived, m_ui.widget, &OsciWidget::renderSamples);
-
-    //connect(&m_fakeDevice, &FakeDevice::samplesReceived, m_ui.widget, &OsciWidget::samplesReceived);
+    connect(m_input.get(), &BaseDevice::samplesReceived, m_ui->widget, &OsciWidget::renderSamples);
 
     for (const auto &device : m_audioDevices)
     {
         auto name = device.deviceName();
-        m_ui.comboBoxDevices->addItem(name);
+        m_ui->comboBoxDevices->addItem(name);
+
         // Select last element containing monitor if available
         if(name.contains("monitor"))
         {
-            m_ui.comboBoxDevices->setCurrentIndex(m_ui.comboBoxDevices->count()-1);
+            m_ui->comboBoxDevices->setCurrentIndex(m_ui->comboBoxDevices->count()-1);
         }
     }
 
-    if (m_ui.comboBoxDevices->count())
-        m_ui.comboBoxDevices->setCurrentIndex(m_audioDevices.count()-1);
-
     for (const auto samplerate : { 44100, 48000, 96000, 192000 })
-        m_ui.comboBoxSamplerate->addItem(tr("%0").arg(samplerate), samplerate);
+        m_ui->comboBoxSamplerate->addItem(tr("%0").arg(samplerate), samplerate);
 
-    connect(m_ui.pushButtonToggle, &QAbstractButton::pressed, this, &MainWindow::toggle);
+    connect(m_ui->pushButtonToggle, &QAbstractButton::pressed, this, &MainWindow::toggle);
 
     for (const auto framerate : {15, 30, 50, 60})
-        m_ui.comboBoxFps->addItem(tr("%0 FPS").arg(framerate), framerate);
+        m_ui->comboBoxFps->addItem(tr("%0 FPS").arg(framerate), framerate);
 
-    m_ui.comboBoxFps->setCurrentIndex(m_ui.comboBoxFps->findData(m_ui.widget->framerate()));
+    m_ui->spinBoxBlend->setValue(m_ui->widget->blend());
 
-    connect(m_ui.comboBoxFps, &QComboBox::currentIndexChanged, this, [&combobox=*m_ui.comboBoxFps,&widget=*m_ui.widget](){
-        widget.setFramerate(combobox.currentData().toInt());
-    });
+    connect(m_ui->spinBoxBlend, qOverload<int>(&QSpinBox::valueChanged), m_ui->widget, &OsciWidget::setBlend);
 
-    m_ui.spinBoxBlend->setValue(m_ui.widget->blend());
+    m_ui->spinBoxGlow->setValue(m_ui->widget->glow());
 
-    connect(m_ui.spinBoxBlend, qOverload<int>(&QSpinBox::valueChanged), m_ui.widget, &OsciWidget::setBlend);
-
-    m_ui.spinBoxGlow->setValue(m_ui.widget->glow());
-
-    connect(m_ui.spinBoxGlow, qOverload<int>(&QSpinBox::valueChanged), m_ui.widget, &OsciWidget::setGlow);
+    connect(m_ui->spinBoxGlow, qOverload<int>(&QSpinBox::valueChanged), m_ui->widget, &OsciWidget::setGlow);
 
     auto buttonGroup = new QButtonGroup;
     buttonGroup->setExclusive(true);    
     for (auto factor : { .5f, 1.f, 2.f, 4.f, 8.f })
     {
         auto radioButton = new QRadioButton(QString::number(factor));
-        connect(radioButton, &QRadioButton::pressed, this, [factor,&widget=*m_ui.widget](){
+        connect(radioButton, &QRadioButton::pressed, this, [factor,&widget=*m_ui->widget](){
             widget.setFactor(factor);
         });
-        m_ui.horizontalLayout->addWidget(radioButton);
+        m_ui->horizontalLayout->addWidget(radioButton);
     }
 
-    if (m_ui.comboBoxDevices->count())
+    if (m_ui->comboBoxDevices->count())
         toggle();
 }
 
 void MainWindow::toggle()
 {
-    if (!m_ui.comboBoxDevices->count())
+    if (!m_ui->comboBoxDevices->count())
     {
         QMessageBox::warning(this, tr("Failed to start!"), tr("Failed to start!") % "\n\n" % tr("No audio devices available!"));
         return;
     }
 
-    if (m_input)
+    if (m_input->running())
     {
-        m_input = nullptr;
-        m_ui.comboBoxDevices->setEnabled(true);
-        m_ui.comboBoxSamplerate->setEnabled(true);
-        m_ui.pushButtonToggle->setText("▶");
+        m_input->stop();
+        m_ui->comboBoxDevices->setEnabled(true);
+        m_ui->comboBoxSamplerate->setEnabled(true);
+        m_ui->comboBoxFps->setEnabled(true);
+        m_ui->pushButtonToggle->setText("▶");
     }
     else
     {
-        QAudioFormat format;
-        format.setSampleRate(m_ui.comboBoxSamplerate->currentData().toInt());
-        format.setChannelCount(2);
-        format.setSampleSize(16);
-        format.setSampleType(QAudioFormat::SignedInt);
-        format.setCodec("audio/pcm");
-        format.setByteOrder(QAudioFormat::LittleEndian);
+        m_input->setSamplerate(m_ui->comboBoxSamplerate->currentData().toInt());
+        m_input->setFramerate(m_ui->comboBoxFps->currentData().toInt());
+        if (auto audioDevice = dynamic_cast<AudioDevice*>(m_input.get()))
+            audioDevice->setDevice(m_audioDevices.at(m_ui->comboBoxDevices->currentIndex()));
+        m_input->start();
 
-        if(m_audioDevices.empty()){
-            qFatal("No audio devices found");
-        }
-        m_input = std::make_unique<QAudioInput>(m_audioDevices.at(m_ui.comboBoxDevices->currentIndex()), format);
-        m_input->start(&m_device);
-        m_input->setBufferSize(format.sampleRate()/60*sizeof(qint16)*2);
-        m_ui.comboBoxDevices->setEnabled(false);
-        m_ui.comboBoxSamplerate->setEnabled(false);
-        m_ui.pushButtonToggle->setText("▮▮");
+        m_ui->comboBoxDevices->setEnabled(false);
+        m_ui->comboBoxSamplerate->setEnabled(false);
+        m_ui->comboBoxFps->setEnabled(false);
+        m_ui->pushButtonToggle->setText("▮▮");
     }
 }
 

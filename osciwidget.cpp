@@ -5,15 +5,9 @@
 #include <QLine>
 
 OsciWidget::OsciWidget(QWidget *parent) :
-    QOpenGLWidget(parent)
+    QOpenGLWidget{parent}
 {
-    restartTimer();
     resizePixmap();
-}
-
-int OsciWidget::framerate() const
-{
-    return m_framerate;
 }
 
 int OsciWidget::blend() const
@@ -29,18 +23,6 @@ float OsciWidget::factor() const
 float OsciWidget::glow() const
 {
     return m_glow;
-}
-
-void OsciWidget::setFramerate(int framerate)
-{
-    if (framerate == m_framerate)
-        return;
-
-    qDebug() << framerate;
-
-    m_framerate = framerate;
-
-    restartTimer();
 }
 
 void OsciWidget::setBlend(int blend)
@@ -110,7 +92,13 @@ void OsciWidget::renderSamples(const SamplePair *begin, const SamplePair *end)
         m_lastPoint = p;
     }
 
+    painter.resetTransform();
+    painter.setCompositionMode(QPainter::CompositionMode_Multiply);
+    painter.fillRect(m_pixmap.rect(), QColor(m_blend,m_blend,m_blend));
+
     painter.end();
+
+    repaint();
 }
 
 void OsciWidget::paintEvent(QPaintEvent *event)
@@ -121,22 +109,6 @@ void OsciWidget::paintEvent(QPaintEvent *event)
     painter.begin(this);
     painter.drawPixmap(0, 0, m_pixmap);
     painter.end();
-    // Fade pixmap by multiplying all pixels by m_blend
-
-    painter.begin(&m_pixmap);
-    painter.setCompositionMode(QPainter::CompositionMode_Multiply);
-    painter.fillRect(m_pixmap.rect(), QColor(m_blend,m_blend,m_blend));
-    painter.end();
-}
-
-void OsciWidget::timerEvent(QTimerEvent *event)
-{
-    if (event->timerId() == m_timerId)
-    {
-        repaint();
-    }
-    else
-        QWidget::timerEvent(event);
 }
 
 void OsciWidget::resizeEvent(QResizeEvent *event)
@@ -144,23 +116,6 @@ void OsciWidget::resizeEvent(QResizeEvent *event)
     Q_UNUSED(event)
 
     resizePixmap();
-}
-
-void OsciWidget::stop()
-{
-    if (m_timerId != -1)
-        killTimer(m_timerId);
-}
-
-void OsciWidget::start()
-{
-    m_timerId = startTimer(1000/m_framerate);
-}
-
-void OsciWidget::restartTimer()
-{
-    stop();
-    start();
 }
 
 void OsciWidget::resizePixmap()

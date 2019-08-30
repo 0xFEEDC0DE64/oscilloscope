@@ -1,16 +1,15 @@
 #pragma once
 
+// Qt includes
 #include <QMainWindow>
 
+// system includes
 #include <memory>
 
-#include "device.h"
-#include "ui_mainwindow.h"
-
-class QAudioInput;
-class QAudioFormat;
+// forward declares
 class QAudioDeviceInfo;
 namespace Ui { class MainWindow; }
+class BaseDevice;
 
 class MainWindow : public QMainWindow
 {
@@ -24,12 +23,9 @@ private slots:
     void toggle();
 
 private:
-    Ui::MainWindow m_ui;
-
-    std::unique_ptr<QAudioInput> m_input;
-
-    Device m_device;
-    //FakeDevice m_fakeDevice;
+    const std::unique_ptr<Ui::MainWindow> m_ui;
 
     const QList<QAudioDeviceInfo> m_audioDevices;
+
+    const std::unique_ptr<BaseDevice> m_input;
 };

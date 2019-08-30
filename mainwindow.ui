@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>600</height>
+    <height>860</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -43,6 +43,9 @@
        <widget class="QComboBox" name="comboBoxSamplerate"/>
       </item>
       <item>
+       <widget class="QComboBox" name="comboBoxFps"/>
+      </item>
+      <item>
        <widget class="QPushButton" name="pushButtonToggle">
         <property name="text">
          <string>PushButton</string>
@@ -61,9 +64,6 @@
          </size>
         </property>
        </spacer>
-      </item>
-      <item>
-       <widget class="QComboBox" name="comboBoxFps"/>
       </item>
       <item>
        <widget class="QSpinBox" name="spinBoxBlend">
