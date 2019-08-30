@@ -18,7 +18,8 @@ HEADERS += \
     mainwindow.h \
     osciwidget.h
 
-STATECHARTS +=
+OTHER_FILES += \
+    README.md
 
 FORMS += \
     mainwindow.ui
