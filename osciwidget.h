@@ -1,6 +1,8 @@
 #pragma once
 
 #include <QWidget>
+
+#include <QOpenGLWidget>
 #include <QDebug>
 #include <QPainter>
 #include <QPixmap>
@@ -12,7 +14,7 @@
 
 #include "device.h"
 
-class OsciWidget : public QWidget
+class OsciWidget : public QOpenGLWidget
 {
     Q_OBJECT
 
@@ -22,6 +24,8 @@ public:
     int framerate() const;
     int blend() const;
     float factor() const;
+    void start();
+    void stop();
 
 public slots:
     void setFramerate(int framerate);
@@ -46,7 +50,6 @@ private:
     float m_factor{4.f};
 
     QPixmap m_pixmap;
-    QPixmap m_fadeoutPixmap;
 
-    std::optional<QPoint> m_lastPoint;
+    std::optional<QPointF> m_lastPoint;
 };

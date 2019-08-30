@@ -5,9 +5,11 @@
 
 #define qvoid void
 
-struct SamplePair {
-    qint16 x, y;
+template<typename T> struct SamplePairT {
+    T x, y;
 };
+
+typedef SamplePairT<qint16> SamplePair;
 
 class Device : public QIODevice
 {

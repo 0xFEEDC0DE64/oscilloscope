@@ -8,9 +8,10 @@
 #include <QStringBuilder>
 #include <QRadioButton>
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    m_audioDevices(QAudioDeviceInfo::availableDevices(QAudio::AudioInput))
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , m_audioDevices(QAudioDeviceInfo::availableDevices(QAudio::AudioInput))
+    , m_ui()
 {
     m_ui.setupUi(this);
 
@@ -19,7 +20,15 @@ MainWindow::MainWindow(QWidget *parent) :
     //connect(&m_fakeDevice, &FakeDevice::samplesReceived, m_ui.widget, &OsciWidget::samplesReceived);
 
     for (const auto &device : m_audioDevices)
-        m_ui.comboBoxDevices->addItem(device.deviceName());
+    {
+        auto name = device.deviceName();
+        m_ui.comboBoxDevices->addItem(name);
+        // Select last element containing monitor if available
+        if(name.contains("monitor"))
+        {
+            m_ui.comboBoxDevices->setCurrentIndex(m_ui.comboBoxDevices->count()-1);
+        }
+    }
 
     for (const auto samplerate : { 44100, 48000, 96000, 192000 })
         m_ui.comboBoxSamplerate->addItem(tr("%0").arg(samplerate), samplerate);
@@ -79,6 +88,9 @@ void MainWindow::toggle()
         format.setCodec("audio/pcm");
         format.setByteOrder(QAudioFormat::LittleEndian);
 
+        if(m_audioDevices.empty()){
+            qFatal("No audio devices found");
+        }
         m_input = std::make_unique<QAudioInput>(m_audioDevices.at(m_ui.comboBoxDevices->currentIndex()), format);
         m_input->start(&m_device);
         m_input->setBufferSize(format.sampleRate()/60*sizeof(qint16)*2);
