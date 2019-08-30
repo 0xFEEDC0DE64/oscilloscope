@@ -5,9 +5,10 @@
 #include <QAudioDeviceInfo>
 #include <QButtonGroup>
 
-MainWindow::MainWindow(QWidget *parent) :
-    QMainWindow(parent),
-    m_audioDevices(QAudioDeviceInfo::availableDevices(QAudio::AudioInput))
+MainWindow::MainWindow(QWidget *parent)
+    : QMainWindow(parent)
+    , m_audioDevices(QAudioDeviceInfo::availableDevices(QAudio::AudioInput))
+    , m_ui()
 {
     m_ui.setupUi(this);
 
