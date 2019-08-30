@@ -132,15 +132,21 @@ void OsciWidget::resizeEvent(QResizeEvent *event)
     resizePixmap();
 }
 
-void OsciWidget::restartTimer()
+void OsciWidget::stop()
 {
     if (m_timerId != -1)
         killTimer(m_timerId);
+}
 
+void OsciWidget::start()
+{
     m_timerId = startTimer(1000/m_framerate);
 }
 
+void OsciWidget::restartTimer()
 {
+    stop();
+    start();
 }
 
 void OsciWidget::resizePixmap()

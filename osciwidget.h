@@ -22,6 +22,8 @@ public:
     int framerate() const;
     int blend() const;
     float factor() const;
+    void start();
+    void stop();
 
 public slots:
     void setFramerate(int framerate);
