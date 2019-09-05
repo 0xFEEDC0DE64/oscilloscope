@@ -42,6 +42,10 @@ MainWindow::MainWindow(QWidget *parent) :
     for (const auto framerate : {15, 30, 50, 60})
         m_ui->comboBoxFps->addItem(tr("%0 FPS").arg(framerate), framerate);
 
+    connect(m_ui->comboBoxFps, qOverload<int>(&QComboBox::currentIndexChanged), m_ui->widget, [this](){
+        m_ui->widget->setFps(m_ui->comboBoxFps->currentData().toInt());
+    });
+
     m_ui->spinBoxBlend->setValue(m_ui->widget->blend());
 
     connect(m_ui->spinBoxBlend, qOverload<int>(&QSpinBox::valueChanged), m_ui->widget, &OsciWidget::setBlend);
@@ -51,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->spinBoxGlow, qOverload<int>(&QSpinBox::valueChanged), m_ui->widget, &OsciWidget::setGlow);
 
     auto buttonGroup = new QButtonGroup;
-    buttonGroup->setExclusive(true);    
+    buttonGroup->setExclusive(true);
     for (auto factor : { .5f, 1.f, 2.f, 4.f, 8.f })
     {
         auto radioButton = new QRadioButton(QString::number(factor));
@@ -78,20 +82,18 @@ void MainWindow::toggle()
         m_input->stop();
         m_ui->comboBoxDevices->setEnabled(true);
         m_ui->comboBoxSamplerate->setEnabled(true);
-        m_ui->comboBoxFps->setEnabled(true);
         m_ui->pushButtonToggle->setText("▶");
     }
     else
     {
         m_input->setSamplerate(m_ui->comboBoxSamplerate->currentData().toInt());
-        m_input->setFramerate(m_ui->comboBoxFps->currentData().toInt());
+        m_input->setFramerate(60);
         if (auto audioDevice = dynamic_cast<AudioDevice*>(m_input.get()))
             audioDevice->setDevice(m_audioDevices.at(m_ui->comboBoxDevices->currentIndex()));
         m_input->start();
 
         m_ui->comboBoxDevices->setEnabled(false);
         m_ui->comboBoxSamplerate->setEnabled(false);
-        m_ui->comboBoxFps->setEnabled(false);
         m_ui->pushButtonToggle->setText("▮▮");
     }
 }

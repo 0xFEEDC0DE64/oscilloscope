@@ -2,12 +2,17 @@
 
 #include <cmath>
 
-#include <QLine>
+#include <QLineF>
+#include <QDebug>
+#include <QPainter>
+#include <QTimerEvent>
 
 OsciWidget::OsciWidget(QWidget *parent) :
-    QOpenGLWidget{parent}
+    QWidget{parent},
+    m_redrawTimerId(startTimer(1000/m_fps))
 {
     resizePixmap();
+    m_fpsTimer.start();
 }
 
 int OsciWidget::blend() const
@@ -23,6 +28,11 @@ float OsciWidget::factor() const
 float OsciWidget::glow() const
 {
     return m_glow;
+}
+
+int OsciWidget::fps() const
+{
+    return m_fps;
 }
 
 void OsciWidget::setBlend(int blend)
@@ -47,6 +57,14 @@ void OsciWidget::setGlow(float glow)
     m_glow = glow;
 }
 
+void OsciWidget::setFps(int fps)
+{
+    qDebug() << fps;
+    killTimer(m_redrawTimerId);
+    m_fps = fps;
+    m_redrawTimerId = startTimer(1000/m_fps);
+}
+
 void OsciWidget::renderSamples(const SamplePair *begin, const SamplePair *end)
 {
     QPainter painter;
@@ -59,35 +77,32 @@ void OsciWidget::renderSamples(const SamplePair *begin, const SamplePair *end)
     painter.setPen(pen);
 
     // Paint from center
-    painter.translate(width()/2, height()/2);
+    painter.translate(m_pixmap.width()/2, m_pixmap.height()/2);
+
+    const auto pointToCoordinates = [width=m_pixmap.width()/2,height=m_pixmap.height()/2,factor=m_factor](const QPointF &point)
+    {
+        return QPoint{
+            int(point.x() * factor * width),
+            int(point.y() * factor * height)
+        };
+    };
 
     for (auto i = begin; i < end; i++)
     {
         const QPointF p{
-            float(i->x) / std::numeric_limits<qint16>::max() / 2,
-            float(-i->y) / std::numeric_limits<qint16>::max() / 2
+            float(i->x) / std::numeric_limits<qint16>::max(),
+            float(-i->y) / std::numeric_limits<qint16>::max()
         };
 
-        if (Q_LIKELY(m_lastPoint.has_value()))
-        {
-            const QLineF line(*m_lastPoint, p);
-            
-            auto brightness = 1.f / line.length() / m_glow;
-            if (line.length() == 0.f || brightness > 255.f)
-                brightness = 255.f;
+        const QLineF line(m_lastPoint, p);
 
-            painter.setOpacity(brightness);
+        auto brightness = 1.f / line.length() / m_glow;
+        if (line.length() == 0.f || brightness > 255.f)
+            brightness = 255.f;
 
-            const auto pointToCoordinates = [this](const QPointF &point)
-            {
-                return QPoint{
-                    int((point.x() * width() / 2 * m_factor)),
-                    int((point.y() * height() / 2 * m_factor))
-                };
-            };
+        painter.setOpacity(brightness);
 
-            painter.drawLine(pointToCoordinates(*m_lastPoint), pointToCoordinates(p));
-        }
+        painter.drawLine(pointToCoordinates(m_lastPoint), pointToCoordinates(p));
 
         m_lastPoint = p;
     }
@@ -97,29 +112,51 @@ void OsciWidget::renderSamples(const SamplePair *begin, const SamplePair *end)
     painter.fillRect(m_pixmap.rect(), QColor(m_blend,m_blend,m_blend));
 
     painter.end();
-
-    repaint();
 }
 
 void OsciWidget::paintEvent(QPaintEvent *event)
 {
-    Q_UNUSED(event)
+    QWidget::paintEvent(event);
+
+    m_frameCounter++;
+    if (m_fpsTimer.hasExpired(1000))
+    {
+        m_displayFrameCounter = m_frameCounter;
+        m_frameCounter = 0;
+        m_fpsTimer.restart();
+    }
 
     QPainter painter;
     painter.begin(this);
     painter.drawPixmap(0, 0, m_pixmap);
+
+    painter.setPen(Qt::white);
+    painter.setBrush(Qt::white);
+    QFont font;
+    font.setPixelSize(24);
+    painter.drawText(20, 20, QString("%0FPS").arg(m_displayFrameCounter));
+
     painter.end();
+
+    if (m_pixmap.rect() != rect())
+        qDebug() << m_pixmap.rect() << rect();
+}
+
+void OsciWidget::timerEvent(QTimerEvent *event)
+{
+    QWidget::timerEvent(event);
+    if (event->timerId() == m_redrawTimerId)
+        repaint();
 }
 
 void OsciWidget::resizeEvent(QResizeEvent *event)
 {
-    Q_UNUSED(event)
-
+    QWidget::resizeEvent(event);
     resizePixmap();
 }
 
 void OsciWidget::resizePixmap()
 {
     m_pixmap = QPixmap(size());
-    m_pixmap.fill(QColor());
+    m_pixmap.fill(QColor{});
 }
