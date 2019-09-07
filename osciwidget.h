@@ -21,6 +21,8 @@ public:
 
     float factor() const { return m_factor; }
     int fps() const { return m_fps; }
+    int afterglow() const { return m_afterglow; }
+    int lightspeed() const;
 
 signals:
     void statusUpdate(const QString &status);
@@ -28,6 +30,8 @@ signals:
 public slots:
     void setFactor(float factor) { m_factor = factor; }
     void setFps(int fps);
+    void setAfterglow(int afterglow) { m_afterglow = afterglow; }
+    void setLightspeed(int lightspeed);
 
     void renderSamples(const SamplePair *begin, const SamplePair *end);
 
@@ -36,17 +40,17 @@ protected:
     void timerEvent(QTimerEvent *event) override;
 
 private:
-    float m_factor{2.f};
-
+    int m_redrawTimerId;
     QPointF m_lastPoint;
+
+    float m_factor{2.f};
+    int m_fps{15}, m_afterglow{175};
+    float m_lightspeed{35.f};
+
+    std::vector<SamplePair> m_buffer;
 
     int m_frameCounter{0}, m_callbacksCounter{0};
     QElapsedTimer m_statsTimer;
-
-    int m_fps{15};
-    int m_redrawTimerId;
-
-    std::vector<SamplePair> m_buffer;
 
     QPixmap m_pixmap;
 };

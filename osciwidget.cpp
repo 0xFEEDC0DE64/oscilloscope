@@ -14,6 +14,11 @@ OsciWidget::OsciWidget(QWidget *parent) :
     m_statsTimer.start();
 }
 
+int OsciWidget::lightspeed() const
+{
+    return std::cbrt(m_lightspeed) * 20.f;
+}
+
 void OsciWidget::setFps(int fps)
 {
     killTimer(m_redrawTimerId);
@@ -21,6 +26,12 @@ void OsciWidget::setFps(int fps)
     m_fps = fps;
 
     m_redrawTimerId = startTimer(1000/m_fps);
+}
+
+void OsciWidget::setLightspeed(int lightspeed) {
+    const auto temp = (float(lightspeed)/20.f);
+    m_lightspeed = temp*temp*temp;
+    qDebug() << m_lightspeed;
 }
 
 void OsciWidget::renderSamples(const SamplePair *begin, const SamplePair *end)
@@ -52,7 +63,7 @@ void OsciWidget::paintEvent(QPaintEvent *event)
     // darkening last frame
     painter.setCompositionMode(QPainter::CompositionMode_Multiply);
     painter.setPen({});
-    painter.setBrush(QColor(150,150,150 ));
+    painter.setBrush(QColor(m_afterglow, m_afterglow, m_afterglow));
     painter.drawRect(m_pixmap.rect());
 
     // drawing new lines ontop
@@ -80,7 +91,7 @@ void OsciWidget::paintEvent(QPaintEvent *event)
 
         const QLineF line(m_lastPoint, p);
 
-        painter.setOpacity(std::min(1.0, 1. / ((line.length() * 75) + 1)));
+        painter.setOpacity(std::min(1.0, 1. / ((line.length() * m_lightspeed) + 1)));
 
         painter.drawLine(pointToCoordinates(m_lastPoint), pointToCoordinates(p));
 

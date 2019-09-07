@@ -23,43 +23,49 @@
      <height>20</height>
     </rect>
    </property>
-   <widget class="QMenu" name="menu_File">
+   <widget class="QMenu" name="menuFile">
     <property name="title">
      <string>&amp;File</string>
     </property>
     <addaction name="actionStart"/>
     <addaction name="actionStop"/>
     <addaction name="separator"/>
-    <addaction name="action_Quit"/>
+    <addaction name="actionQuit"/>
    </widget>
-   <widget class="QMenu" name="menu_Device">
+   <widget class="QMenu" name="menuDevice">
     <property name="title">
      <string>&amp;Device</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menu_Samplerate">
+   <widget class="QMenu" name="menuSamplerate">
     <property name="title">
      <string>&amp;Samplerate</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menu_Refreshrate">
+   <widget class="QMenu" name="menuRefreshrate">
     <property name="title">
      <string>&amp;Refreshrate</string>
     </property>
    </widget>
-   <widget class="QMenu" name="menu_Zoom">
+   <widget class="QMenu" name="menuZoom">
     <property name="title">
      <string>&amp;Zoom</string>
     </property>
    </widget>
-   <addaction name="menu_File"/>
-   <addaction name="menu_Device"/>
-   <addaction name="menu_Samplerate"/>
-   <addaction name="menu_Refreshrate"/>
-   <addaction name="menu_Zoom"/>
+   <widget class="QMenu" name="menuDebug">
+    <property name="title">
+     <string>Debug</string>
+    </property>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuDevice"/>
+   <addaction name="menuSamplerate"/>
+   <addaction name="menuRefreshrate"/>
+   <addaction name="menuZoom"/>
+   <addaction name="menuDebug"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="action_Quit">
+  <action name="actionQuit">
    <property name="text">
     <string>&amp;Quit</string>
    </property>
@@ -86,7 +92,7 @@
  <resources/>
  <connections>
   <connection>
-   <sender>action_Quit</sender>
+   <sender>actionQuit</sender>
    <signal>triggered()</signal>
    <receiver>MainWindow</receiver>
    <slot>close()</slot>

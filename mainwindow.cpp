@@ -2,11 +2,10 @@
 #include "ui_mainwindow.h"
 
 // Qt includes
-#include <QButtonGroup>
-#include <QMessageBox>
-#include <QStringBuilder>
-#include <QRadioButton>
 #include <QLabel>
+#include <QWidgetAction>
+#include <QFormLayout>
+#include <QSpinBox>
 #include <QDebug>
 
 // local includes
@@ -43,13 +42,13 @@ MainWindow::MainWindow(QWidget *parent) :
     // setting up menu File
     connect(m_ui->actionStart, &QAction::triggered, this, &MainWindow::start);
     connect(m_ui->actionStop, &QAction::triggered, this, &MainWindow::stop);
-    m_ui->action_Quit->setShortcut(QKeySequence::Quit);
+    m_ui->actionQuit->setShortcut(QKeySequence::Quit);
 
     // setting up menu Devices
     for (const auto &device : m_audioDevices)
     {
         auto name = device.deviceName();
-        const auto action = m_ui->menu_Device->addAction(name);
+        const auto action = m_ui->menuDevice->addAction(name);
         action->setCheckable(true);
         m_deviceGroup.addAction(action);
 
@@ -61,7 +60,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // setting up menu Samplerates
     for (const auto samplerate : samplerates)
     {
-        auto action = m_ui->menu_Samplerate->addAction(tr("%0").arg(samplerate));
+        auto action = m_ui->menuSamplerate->addAction(tr("%0").arg(samplerate));
         action->setCheckable(true);
         m_samplerateGroup.addAction(action);
     }
@@ -71,7 +70,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // setting up menu Refreshrates
     for (const auto refreshrate : refreshrates)
     {
-        auto action = m_ui->menu_Refreshrate->addAction(tr("%0FPS").arg(refreshrate));
+        auto action = m_ui->menuRefreshrate->addAction(tr("%0FPS").arg(refreshrate));
         action->setCheckable(true);
         m_refreshrateGroup.addAction(action);
     }
@@ -87,7 +86,7 @@ MainWindow::MainWindow(QWidget *parent) :
     // setting up menu Zoom
     for (const auto zoomlevel : zoomlevels)
     {
-        auto action = m_ui->menu_Zoom->addAction(tr("%0%").arg(zoomlevel));
+        auto action = m_ui->menuZoom->addAction(tr("%0%").arg(zoomlevel));
         action->setCheckable(true);
         m_zoomlevelsGroup.addAction(action);
     }
@@ -99,6 +98,29 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     connect(&m_zoomlevelsGroup, &QActionGroup::triggered, this, &MainWindow::zoomChanged);
+
+    //setting up menu Debug
+    {
+        auto widgetAction = new QWidgetAction(this);
+        auto widget = new QWidget;
+        auto layout = new QFormLayout(widget);
+        {
+            auto input = new QSpinBox;
+            input->setRange(0, 255);
+            input->setValue(m_ui->widget->afterglow());
+            connect(input, qOverload<int>(&QSpinBox::valueChanged), m_ui->widget, &OsciWidget::setAfterglow);
+            layout->addRow(tr("Afterglow:"), input);
+        }
+        {
+            auto input = new QSpinBox;
+            input->setRange(0, 255);
+            input->setValue(m_ui->widget->lightspeed());
+            connect(input, qOverload<int>(&QSpinBox::valueChanged), m_ui->widget, &OsciWidget::setLightspeed);
+            layout->addRow(tr("Lightspeed:"), input);
+        }
+        widgetAction->setDefaultWidget(widget);
+        m_ui->menuDebug->addAction(widgetAction);
+    }
 
     // autostart
     if (m_audioDevices.isEmpty())
