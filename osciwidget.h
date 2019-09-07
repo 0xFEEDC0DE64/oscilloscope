@@ -41,7 +41,7 @@ protected:
 
 private:
     float m_factor{2.f};
-    int m_fps{15}, m_afterglow{175};
+    int m_fps{30}, m_afterglow{175};
     float m_lightspeed{35.f};
 
     std::vector<SamplePair> m_buffer;

@@ -6,7 +6,8 @@ DEFINES += QT_DEPRECATED_WARNINGS QT_DISABLE_DEPRECATED_BEFORE=0x060000
 SOURCES += \
         audiodevice.cpp \
         basedevice.cpp \
-        fakedevice.cpp \
+        basetonegenerator.cpp \
+        debugtonegenerator.cpp \
         main.cpp \
         mainwindow.cpp \
         osciwidget.cpp
@@ -14,7 +15,8 @@ SOURCES += \
 HEADERS += \
     audiodevice.h \
     basedevice.h \
-    fakedevice.h \
+    basetonegenerator.h \
+    debugtonegenerator.h \
     mainwindow.h \
     oscicommon.h \
     osciwidget.h

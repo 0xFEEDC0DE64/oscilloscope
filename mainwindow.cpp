@@ -1,6 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+// system includes
+#include <stdexcept>
+
 // Qt includes
 #include <QLabel>
 #include <QWidgetAction>
@@ -10,7 +13,7 @@
 
 // local includes
 #include "audiodevice.h"
-#include "fakedevice.h"
+#include "debugtonegenerator.h"
 
 namespace {
 constexpr int samplerates[] = { 44100, 48000, 96000, 192000 };
@@ -30,7 +33,8 @@ void setActionsEnabled(const T &actions, bool enabled)
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow{parent},
     m_ui{std::make_unique<Ui::MainWindow>()},
-    m_audioDevices{QAudioDeviceInfo::availableDevices(QAudio::AudioInput)},
+    m_inputDevices{QAudioDeviceInfo::availableDevices(QAudio::AudioInput)},
+    m_outputDevices{QAudioDeviceInfo::availableDevices(QAudio::AudioOutput)},
     m_statusLabel{*new QLabel}
 {
     m_ui->setupUi(this);
@@ -44,16 +48,29 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(m_ui->actionStop, &QAction::triggered, this, &MainWindow::stop);
     m_ui->actionQuit->setShortcut(QKeySequence::Quit);
 
-    // setting up menu Devices
-    for (const auto &device : m_audioDevices)
+    // setting up menu InputDevices
+    for (const auto &device : m_inputDevices)
     {
         auto name = device.deviceName();
-        const auto action = m_ui->menuDevice->addAction(name);
+        const auto action = m_ui->menuInputDevice->addAction(name);
         action->setCheckable(true);
-        m_deviceGroup.addAction(action);
+        m_inputDeviceGroup.addAction(action);
 
         // Select last element containing monitor if available
         if(name.contains("monitor"))
+            action->setChecked(true);
+    }
+
+    // setting up menu OutputDevices
+    for (const auto &device : m_outputDevices)
+    {
+        auto name = device.deviceName();
+        const auto action = m_ui->menuOutputDevice->addAction(name);
+        action->setCheckable(true);
+        m_outputDeviceGroup.addAction(action);
+
+        // Select last element containing analog-stereo if available
+        if(name.contains("analog-stereo"))
             action->setChecked(true);
     }
 
@@ -100,6 +117,8 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&m_zoomlevelsGroup, &QActionGroup::triggered, this, &MainWindow::zoomChanged);
 
     //setting up menu Debug
+    connect(m_ui->actionToneGenerator, &QAction::triggered, this, &MainWindow::startGenerator);
+
     {
         auto widgetAction = new QWidgetAction(this);
         auto widget = new QWidget;
@@ -123,7 +142,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
 
     // autostart
-    if (m_audioDevices.isEmpty())
+    if (m_inputDevices.isEmpty())
     {
         m_ui->actionStart->setEnabled(false);
         m_ui->actionStop->setEnabled(false);
@@ -134,28 +153,20 @@ MainWindow::MainWindow(QWidget *parent) :
 
 void MainWindow::start()
 {
-    m_input = std::make_unique<AudioDevice>();
-    //m_input = std::make_unique<FakeDevice>();
-
     {
-        auto *checked = m_samplerateGroup.checkedAction();
-        const auto index = m_samplerateGroup.actions().indexOf(checked);
-        const auto samplerate = samplerates[index];
-        qDebug() << "samplerate: checked =" << checked << "index =" << index << "value =" << samplerate;
-        m_input->setSamplerate(samplerate);
+        auto input = std::make_unique<AudioDevice>();
+        // setDevice is AudioDevice specific API
+        input->setDevice(m_inputDevices.at(m_inputDeviceGroup.actions().indexOf(m_inputDeviceGroup.checkedAction())));
+        m_input = std::move(input);
     }
+
+    m_input->setSamplerate(samplerate());
 
     connect(m_input.get(), &BaseDevice::samplesReceived, m_ui->widget, &OsciWidget::renderSamples);
 
-    if (auto audioDevice = dynamic_cast<AudioDevice*>(m_input.get()))
-    {
-        const auto device = m_audioDevices.at(m_deviceGroup.actions().indexOf(m_deviceGroup.checkedAction()));
-        qDebug() << "setDevice" << device.deviceName();
-        audioDevice->setDevice(device);
-    }
     m_input->start();
 
-    setActionsEnabled(m_deviceGroup.actions(), false);
+    setActionsEnabled(m_inputDeviceGroup.actions(), false);
     setActionsEnabled(m_samplerateGroup.actions(), false);
     m_ui->actionStart->setEnabled(false);
     m_ui->actionStop->setEnabled(true);
@@ -164,7 +175,7 @@ void MainWindow::start()
 void MainWindow::stop()
 {
     m_input = nullptr;
-    setActionsEnabled(m_deviceGroup.actions(), true);
+    setActionsEnabled(m_inputDeviceGroup.actions(), true);
     setActionsEnabled(m_samplerateGroup.actions(), true);
     m_ui->actionStart->setEnabled(true);
     m_ui->actionStop->setEnabled(false);
@@ -186,6 +197,31 @@ void MainWindow::zoomChanged()
     const auto zoomlevel = zoomlevels[index];
     qDebug() << "zoomlevel: checked =" << checked << "index =" << index << "value =" << zoomlevel;
     m_ui->widget->setFactor(zoomlevel/100.f);
+}
+
+void MainWindow::startGenerator()
+{
+    m_generator = nullptr;
+    m_generator = std::make_unique<DebugToneGenerator>();
+    m_generator->setDevice(m_outputDevices.at(m_outputDeviceGroup.actions().indexOf(m_outputDeviceGroup.checkedAction())));
+    m_generator->setSamplerate(samplerate());
+    m_generator->start();
+}
+
+int MainWindow::samplerate() const
+{
+    auto *checked = m_samplerateGroup.checkedAction();
+    if (!checked)
+        throw std::runtime_error(tr("No samplerate selected!").toStdString());
+
+    const auto index = m_samplerateGroup.actions().indexOf(checked);
+    if (index < 0)
+        throw std::runtime_error(tr("Unknown samplerate selected!").toStdString());
+
+    if (index >= std::distance(std::begin(samplerates), std::end(samplerates)))
+        throw std::runtime_error(tr("Index out of range!").toStdString());
+
+    return samplerates[index];
 }
 
 MainWindow::~MainWindow() = default;

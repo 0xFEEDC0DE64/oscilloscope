@@ -13,6 +13,8 @@ class QLabel;
 namespace Ui { class MainWindow; }
 class BaseDevice;
 
+class BaseToneGenerator;
+
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -26,15 +28,20 @@ private slots:
     void stop();
     void refreshRateChanged();
     void zoomChanged();
+    void startGenerator();
 
 private:
+    int samplerate() const;
+
     const std::unique_ptr<Ui::MainWindow> m_ui;
 
-    const QList<QAudioDeviceInfo> m_audioDevices;
+    const QList<QAudioDeviceInfo> m_inputDevices, m_outputDevices;
 
     std::unique_ptr<BaseDevice> m_input;
 
-    QActionGroup m_deviceGroup{this}, m_samplerateGroup{this}, m_refreshrateGroup{this}, m_zoomlevelsGroup{this};
+    QActionGroup m_inputDeviceGroup{this}, m_outputDeviceGroup{this}, m_samplerateGroup{this}, m_refreshrateGroup{this}, m_zoomlevelsGroup{this};
 
     QLabel &m_statusLabel;
+
+    std::unique_ptr<BaseToneGenerator> m_generator;
 };

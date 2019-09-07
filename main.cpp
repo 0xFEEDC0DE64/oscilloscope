@@ -1,6 +1,8 @@
+// Qt includes
 #include <QApplication>
 #include <QtGlobal>
 
+// local includes
 #include "mainwindow.h"
 
 int main(int argc, char *argv[])

@@ -1,7 +1,9 @@
 #include "osciwidget.h"
 
+// system includes
 #include <cmath>
 
+// Qt includes
 #include <QLineF>
 #include <QDebug>
 #include <QPainter>

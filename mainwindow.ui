@@ -32,9 +32,9 @@
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
    </widget>
-   <widget class="QMenu" name="menuDevice">
+   <widget class="QMenu" name="menuInputDevice">
     <property name="title">
-     <string>&amp;Device</string>
+     <string>&amp;Input device</string>
     </property>
    </widget>
    <widget class="QMenu" name="menuSamplerate">
@@ -56,9 +56,16 @@
     <property name="title">
      <string>Debug</string>
     </property>
+    <addaction name="actionToneGenerator"/>
+   </widget>
+   <widget class="QMenu" name="menuOutputDevice">
+    <property name="title">
+     <string>&amp;Output device</string>
+    </property>
    </widget>
    <addaction name="menuFile"/>
-   <addaction name="menuDevice"/>
+   <addaction name="menuInputDevice"/>
+   <addaction name="menuOutputDevice"/>
    <addaction name="menuSamplerate"/>
    <addaction name="menuRefreshrate"/>
    <addaction name="menuZoom"/>
@@ -78,6 +85,11 @@
   <action name="actionStop">
    <property name="text">
     <string>Stop</string>
+   </property>
+  </action>
+  <action name="actionToneGenerator">
+   <property name="text">
+    <string>&amp;Tone generator</string>
    </property>
   </action>
  </widget>
