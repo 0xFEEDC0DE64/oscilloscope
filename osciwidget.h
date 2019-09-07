@@ -40,9 +40,6 @@ protected:
     void timerEvent(QTimerEvent *event) override;
 
 private:
-    int m_redrawTimerId;
-    QPointF m_lastPoint;
-
     float m_factor{2.f};
     int m_fps{15}, m_afterglow{175};
     float m_lightspeed{35.f};
@@ -52,5 +49,7 @@ private:
     int m_frameCounter{0}, m_callbacksCounter{0};
     QElapsedTimer m_statsTimer;
 
+    int m_redrawTimerId;
+    QPointF m_lastPoint;
     QPixmap m_pixmap;
 };
