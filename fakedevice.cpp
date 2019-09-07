@@ -34,8 +34,8 @@ void FakeDevice::timerEvent(QTimerEvent *event)
              pair != m_buffer.get() + m_bufferSize;
              pair++)
         {
-            pair->x = std::sin(m_dingsDesHaltHochZaehlt) * std::numeric_limits<qint16>::max();
-            pair->y = std::cos(m_dingsDesHaltHochZaehlt) * std::numeric_limits<qint16>::max();
+            pair->first = std::sin(m_dingsDesHaltHochZaehlt) * std::numeric_limits<qint16>::max();
+            pair->second = std::cos(m_dingsDesHaltHochZaehlt) * std::numeric_limits<qint16>::max();
             m_dingsDesHaltHochZaehlt += 0.05;
         }
 

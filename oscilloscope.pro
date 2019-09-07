@@ -16,6 +16,7 @@ HEADERS += \
     basedevice.h \
     fakedevice.h \
     mainwindow.h \
+    oscicommon.h \
     osciwidget.h
 
 OTHER_FILES += \

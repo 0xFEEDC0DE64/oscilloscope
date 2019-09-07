@@ -2,12 +2,7 @@
 
 #include <QObject>
 
-template<typename T>
-struct SamplePairT {
-    T x, y;
-};
-
-typedef SamplePairT<qint16> SamplePair;
+#include "oscicommon.h"
 
 class BaseDevice : public QObject
 {

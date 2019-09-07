@@ -46,14 +46,6 @@ MainWindow::MainWindow(QWidget *parent) :
         m_ui->widget->setFps(m_ui->comboBoxFps->currentData().toInt());
     });
 
-    m_ui->spinBoxBlend->setValue(m_ui->widget->blend());
-
-    connect(m_ui->spinBoxBlend, qOverload<int>(&QSpinBox::valueChanged), m_ui->widget, &OsciWidget::setBlend);
-
-    m_ui->spinBoxGlow->setValue(m_ui->widget->glow());
-
-    connect(m_ui->spinBoxGlow, qOverload<int>(&QSpinBox::valueChanged), m_ui->widget, &OsciWidget::setGlow);
-
     auto buttonGroup = new QButtonGroup;
     buttonGroup->setExclusive(true);
     for (auto factor : { .5f, 1.f, 2.f, 4.f, 8.f })
