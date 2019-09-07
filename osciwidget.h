@@ -22,6 +22,9 @@ public:
     float factor() const { return m_factor; }
     int fps() const { return m_fps; }
 
+signals:
+    void statusUpdate(const QString &status);
+
 public slots:
     void setFactor(float factor) { m_factor = factor; }
     void setFps(int fps);
@@ -38,11 +41,12 @@ private:
     QPointF m_lastPoint;
 
     int m_frameCounter{0}, m_callbacksCounter{0};
-    QString m_statsDisplay;
-    QElapsedTimer m_fpsTimer;
+    QElapsedTimer m_statsTimer;
 
     int m_fps{15};
     int m_redrawTimerId;
 
     std::vector<SamplePair> m_buffer;
+
+    QPixmap m_pixmap;
 };

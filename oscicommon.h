@@ -5,6 +5,7 @@
 
 template<typename T>
 struct SamplePairT {
+    typedef T Type;
     T first, second;
 };
 

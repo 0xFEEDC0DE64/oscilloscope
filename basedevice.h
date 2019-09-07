@@ -18,9 +18,6 @@ public:
     virtual int samplerate() const = 0;
     virtual void setSamplerate(int samplerate) = 0;
 
-    virtual int framerate() const = 0;
-    virtual void setFramerate(int framerate) = 0;
-
 signals:
     void samplesReceived(const SamplePair *begin, const SamplePair *end);
 };

@@ -11,7 +11,7 @@ OsciWidget::OsciWidget(QWidget *parent) :
     QOpenGLWidget{parent},
     m_redrawTimerId(startTimer(1000/m_fps))
 {
-    m_fpsTimer.start();
+    m_statsTimer.start();
 }
 
 void OsciWidget::setFps(int fps)
@@ -35,30 +35,35 @@ void OsciWidget::paintEvent(QPaintEvent *event)
     QWidget::paintEvent(event);
 
     m_frameCounter++;
-    if (m_fpsTimer.hasExpired(1000))
+    if (m_statsTimer.hasExpired(1000))
     {
-        m_statsDisplay = QString("%0FPS (%1 callbacks)").arg(m_frameCounter).arg(m_callbacksCounter);
+        emit statusUpdate(QString("%0FPS (%1 audio callbacks)").arg(m_frameCounter).arg(m_callbacksCounter));
         m_frameCounter = 0;
         m_callbacksCounter = 0;
-        m_fpsTimer.restart();
+        m_statsTimer.restart();
     }
 
-    QPainter painter;
-    painter.begin(this);
+    if (m_pixmap.size() != size())
+        m_pixmap = QPixmap(size());
 
-    // draw background
-    painter.setBrush(Qt::black);
-    painter.drawRect(rect());
+    QPainter painter;
+    painter.begin(&m_pixmap);
+
+    // darkening last frame
+    painter.setCompositionMode(QPainter::CompositionMode_Multiply);
+    painter.setPen({});
+    painter.setBrush(QColor(150,150,150 ));
+    painter.drawRect(m_pixmap.rect());
 
     // drawing new lines ontop
     QPen pen;
     pen.setWidth(2);
     pen.setColor(QColor(0, 255, 0));
     painter.setPen(pen);
-    painter.translate(width()/2, height()/2);
+    painter.translate(m_pixmap.width()/2, m_pixmap.height()/2);
     painter.setCompositionMode(QPainter::CompositionMode_Plus);
 
-    const auto pointToCoordinates = [width=width()/2,height=height()/2,factor=m_factor](const QPointF &point)
+    const auto pointToCoordinates = [width=m_pixmap.width()/2,height=m_pixmap.height()/2,factor=m_factor](const QPointF &point)
     {
         return QPoint{
             int(point.x() * factor * width),
@@ -75,26 +80,23 @@ void OsciWidget::paintEvent(QPaintEvent *event)
 
         const QLineF line(m_lastPoint, p);
 
-        painter.setOpacity(std::min(1.0, 1. / ((line.length() * 100) + 1)));
+        painter.setOpacity(std::min(1.0, 1. / ((line.length() * 75) + 1)));
 
         painter.drawLine(pointToCoordinates(m_lastPoint), pointToCoordinates(p));
 
         m_lastPoint = p;
     }
 
-    painter.resetTransform();
     painter.setOpacity(1);
-
-    m_buffer.clear();
-
-    // draw stats
-    painter.setPen(Qt::white);
-    painter.setBrush(Qt::white);
-    QFont font;
-    font.setPixelSize(24);
-    painter.drawText(20, 20, m_statsDisplay);
+    painter.resetTransform();
 
     painter.end();
+
+    painter.begin(this);
+    painter.drawPixmap(0, 0, m_pixmap);
+    painter.end();
+
+    m_buffer.clear();
 }
 
 void OsciWidget::timerEvent(QTimerEvent *event)

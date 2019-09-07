@@ -19,8 +19,8 @@ public:
     int samplerate() const override { return m_samplerate; }
     void setSamplerate(int samplerate) override { Q_ASSERT(!running()); m_samplerate = samplerate; }
 
-    int framerate() const override { return m_framerate; }
-    void setFramerate(int framerate) override { Q_ASSERT(!running()); m_framerate = framerate; }
+    int framerate() const { return m_framerate; }
+    void setFramerate(int framerate) { Q_ASSERT(!running()); m_framerate = framerate; }
 
 protected:
     void timerEvent(QTimerEvent *event) override;
