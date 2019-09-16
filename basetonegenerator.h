@@ -9,9 +9,6 @@
 // local includes
 #include "oscicommon.h"
 
-// forward declares
-namespace { class BaseToneGeneratorPrivate; }
-
 class BaseToneGenerator
 {
 public:
@@ -31,6 +28,7 @@ public:
     virtual std::size_t fill(SamplePair *begin, SamplePair *end) = 0;
 
 private:
+    class BaseToneGeneratorPrivate;
     std::unique_ptr<BaseToneGeneratorPrivate> m_private;
 
     int m_samplerate;

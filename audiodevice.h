@@ -9,7 +9,6 @@
 #include <memory>
 
 // forward declares
-namespace { class AudioDevicePrivate; }
 class QAudioInput;
 
 class AudioDevice : public BaseDevice
@@ -31,6 +30,7 @@ public:
     void setDevice(const QAudioDeviceInfo &device) { Q_ASSERT(!running()); m_device = device; }
 
 private:
+    class AudioDevicePrivate;
     std::unique_ptr<AudioDevicePrivate> m_private;
 
     int m_samplerate;

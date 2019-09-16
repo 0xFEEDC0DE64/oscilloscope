@@ -4,7 +4,6 @@
 #include <QIODevice>
 #include <QAudioInput>
 
-namespace {
 //! private helper to allow QAudioInput to write to a io device
 class AudioDeviceHelper : public QIODevice
 {
@@ -18,14 +17,13 @@ private:
     AudioDevice &m_audioDevice;
 };
 
-class AudioDevicePrivate {
+class AudioDevice::AudioDevicePrivate {
 public:
     AudioDevicePrivate(AudioDevice &audioDevice, const QAudioDeviceInfo &audioDeviceInfo, const QAudioFormat &format);
 
     AudioDeviceHelper helper;
     QAudioInput input;
 };
-}
 
 AudioDevice::AudioDevice(QObject *parent) :
     BaseDevice{parent}
@@ -58,9 +56,6 @@ void AudioDevice::stop()
     m_private = nullptr;
 }
 
-
-
-namespace {
 AudioDeviceHelper::AudioDeviceHelper(AudioDevice &audioDevice, QObject *parent) :
     QIODevice{parent}, m_audioDevice(audioDevice)
 {
@@ -84,8 +79,7 @@ qint64 AudioDeviceHelper::writeData(const char *data, qint64 len)
     return len;
 }
 
-AudioDevicePrivate::AudioDevicePrivate(AudioDevice &audioDevice, const QAudioDeviceInfo &audioDeviceInfo, const QAudioFormat &format) :
+AudioDevice::AudioDevicePrivate::AudioDevicePrivate(AudioDevice &audioDevice, const QAudioDeviceInfo &audioDeviceInfo, const QAudioFormat &format) :
     helper{audioDevice}, input{audioDeviceInfo, format}
 {
-}
 }
