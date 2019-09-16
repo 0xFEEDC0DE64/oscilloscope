@@ -1,8 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-// system includes
-#include <stdexcept>
+// local includes
+#include "audiodevice.h"
+#include "debugtonegenerator.h"
 
 // Qt includes
 #include <QLabel>
@@ -11,9 +12,8 @@
 #include <QSpinBox>
 #include <QDebug>
 
-// local includes
-#include "audiodevice.h"
-#include "debugtonegenerator.h"
+// system includes
+#include <stdexcept>
 
 namespace {
 constexpr int samplerates[] = { 44100, 48000, 96000, 192000 };

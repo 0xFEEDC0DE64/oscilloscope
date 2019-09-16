@@ -1,13 +1,13 @@
 #include "osciwidget.h"
 
-// system includes
-#include <cmath>
-
 // Qt includes
 #include <QLineF>
 #include <QDebug>
 #include <QPainter>
 #include <QTimerEvent>
+
+// system includes
+#include <cmath>
 
 OsciWidget::OsciWidget(QWidget *parent) :
     QOpenGLWidget{parent},
