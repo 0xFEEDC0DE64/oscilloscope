@@ -46,7 +46,7 @@ private:
 
     std::vector<SamplePair> m_buffer;
 
-    int m_frameCounter{0}, m_callbacksCounter{0};
+    int m_frameCounter{0}, m_callbacksCounter{0}, m_samplesCounter{0};
     QElapsedTimer m_statsTimer;
 
     int m_redrawTimerId;

@@ -40,6 +40,8 @@ void OsciWidget::renderSamples(const SamplePair *begin, const SamplePair *end)
 {
     m_callbacksCounter++;
 
+    m_samplesCounter += std::distance(begin, end);
+
     m_buffer.insert(m_buffer.end(), begin, end);
 }
 
@@ -50,14 +52,18 @@ void OsciWidget::paintEvent(QPaintEvent *event)
     m_frameCounter++;
     if (m_statsTimer.hasExpired(1000))
     {
-        emit statusUpdate(QString("%0FPS (%1 audio callbacks)").arg(m_frameCounter).arg(m_callbacksCounter));
+        emit statusUpdate(QString("%0FPS (%1 callbacks, %2 samples, %3 avg per callback)").arg(m_frameCounter).arg(m_callbacksCounter).arg(m_samplesCounter).arg(m_callbacksCounter>0?m_samplesCounter/m_callbacksCounter:0));
         m_frameCounter = 0;
         m_callbacksCounter = 0;
+        m_samplesCounter = 0;
         m_statsTimer.restart();
     }
 
     if (m_pixmap.size() != size())
+    {
         m_pixmap = QPixmap(size());
+        m_pixmap.fill(Qt::black);
+    }
 
     QPainter painter;
     painter.begin(&m_pixmap);
