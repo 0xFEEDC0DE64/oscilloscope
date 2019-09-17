@@ -124,10 +124,11 @@ MainWindow::MainWindow(QWidget *parent) :
         auto widget = new QWidget;
         auto layout = new QFormLayout(widget);
         {
-            auto input = new QSpinBox;
-            input->setRange(0, 255);
+            auto input = new QDoubleSpinBox;
+            input->setRange(0, 1.0);
+            input->setSingleStep(0.1);
             input->setValue(m_ui->widget->afterglow());
-            connect(input, qOverload<int>(&QSpinBox::valueChanged), m_ui->widget, &OsciWidget::setAfterglow);
+            connect(input, qOverload<double>(&QDoubleSpinBox::valueChanged), m_ui->widget, &OsciWidget::setAfterglow);
             layout->addRow(tr("Afterglow:"), input);
         }
         {

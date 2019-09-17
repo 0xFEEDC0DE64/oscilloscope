@@ -21,7 +21,7 @@ public:
 
     float factor() const { return m_factor; }
     int fps() const { return m_fps; }
-    int afterglow() const { return m_afterglow; }
+    float afterglow() const { return m_afterglow; }
     int lightspeed() const;
 
 signals:
@@ -30,7 +30,7 @@ signals:
 public slots:
     void setFactor(float factor) { m_factor = factor; }
     void setFps(int fps);
-    void setAfterglow(int afterglow) { m_afterglow = afterglow; }
+    void setAfterglow(float afterglow);
     void setLightspeed(int lightspeed);
 
     void renderSamples(const SamplePair *begin, const SamplePair *end);
@@ -44,7 +44,8 @@ private:
 
 private:
     float m_factor{2.f};
-    int m_fps{30}, m_afterglow{175};
+    int m_fps{30}, m_afterglowColor{175};
+    float m_afterglow{0.2};
     float m_lightspeed{35.f};
 
     std::vector<SamplePair> m_buffer;
