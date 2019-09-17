@@ -62,6 +62,9 @@ void OsciWidget::paintEvent(QPaintEvent *event)
 
 void OsciWidget::updateFrameBuffer()
 {
+    // Workaround for flickering (do not update, when there is no new data)
+    if(m_buffer.empty()) return;
+
     if (m_pixmap.size() != size())
         m_pixmap = QPixmap(size());
 
