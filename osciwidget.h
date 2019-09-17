@@ -44,7 +44,7 @@ private:
 
 private:
     float m_factor{2.f};
-    int m_fps{30}, m_afterglowColor{175};
+    int m_fps{30};
     float m_afterglow{0.2};
     float m_lightspeed{35.f};
 

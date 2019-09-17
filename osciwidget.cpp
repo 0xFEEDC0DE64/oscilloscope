@@ -34,7 +34,6 @@ void OsciWidget::setAfterglow(float afterglow){
     m_afterglow = afterglow;
     // percentage of the image that should be visible after one second
     // i.e. factor^fps=afterglow -> factor = afterglow^(1/fps)
-    m_afterglowColor = 255 * pow(afterglow, 1.0/m_fps);
 }
 
 void OsciWidget::setLightspeed(int lightspeed) {
@@ -86,7 +85,8 @@ void OsciWidget::updateFrameBuffer()
     // darkening last frame
     painter.setCompositionMode(QPainter::CompositionMode_Multiply);
     painter.setPen({});
-    painter.setBrush(QColor(m_afterglowColor, m_afterglowColor, m_afterglowColor));
+    auto afterglowColor = 255 * pow(m_afterglow, 1.0/m_fps);
+    painter.setBrush(QColor(afterglowColor, afterglowColor, afterglowColor));
     painter.drawRect(m_pixmap.rect());
 
     // drawing new lines ontop
