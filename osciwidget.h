@@ -43,7 +43,7 @@ private:
     void updateFrameBuffer();
 
 private:
-    float m_factor{2.f};
+    float m_factor{1.f};
     int m_fps{30};
     float m_afterglow{0.2};
     float m_lightspeed{35.f};
