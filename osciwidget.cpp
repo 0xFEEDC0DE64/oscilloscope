@@ -90,20 +90,15 @@ void OsciWidget::updateFrameBuffer()
     painter.drawRect(m_pixmap.rect());
 
     // drawing new lines ontop
+    painter.translate(m_pixmap.width()/2, m_pixmap.height()/2);
+    painter.scale(m_factor * m_pixmap.width() / 2.0, m_factor * m_pixmap.height() / 2.0);
+    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+
     QPen pen;
+    pen.setCosmetic(true); // let pen be scale invariant
     pen.setWidth(2);
     pen.setColor(QColor(0, 255, 0));
     painter.setPen(pen);
-    painter.translate(m_pixmap.width()/2, m_pixmap.height()/2);
-    painter.setCompositionMode(QPainter::CompositionMode_Plus);
-
-    const auto pointToCoordinates = [width=m_pixmap.width()/2,height=m_pixmap.height()/2,factor=m_factor](const QPointF &point)
-    {
-        return QPoint{
-            int(point.x() * factor * width),
-            int(point.y() * factor * height)
-        };
-    };
 
     for (const auto &i : m_buffer)
     {
@@ -116,7 +111,7 @@ void OsciWidget::updateFrameBuffer()
 
         painter.setOpacity(std::min(1.0, 1. / ((line.length() * m_lightspeed) + 1)));
 
-        painter.drawLine(pointToCoordinates(m_lastPoint), pointToCoordinates(p));
+        painter.drawLine(m_lastPoint, p);
 
         m_lastPoint = p;
     }
