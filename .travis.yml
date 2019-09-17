@@ -14,7 +14,7 @@ cache:
 
 install:
   - mkdir -p qt5
-  - if [ ! -d qt5/.git ] ; then rm qt5 -Rf ; git clone --branch=5.12.5 git://code.qt.io/qt/qt5.git ; fi
+  - if [ ! -d qt5/.git ] ; then rm qt5 -Rf ; git clone --branch=5.10 git://code.qt.io/qt/qt5.git ; fi
   - pushd qt5
   - if [ ! -d qtbase/.git ] ; then perl init-repository --module-subset=qtbase,qtimageformats,qtmultimedia,qttools ; fi
   - if [ ! -f config.summary ] ; then ./configure -prefix `pwd`/build -opensource -confirm-license -nomake examples -nomake tests ; fi
