@@ -117,7 +117,7 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&m_zoomlevelsGroup, &QActionGroup::triggered, this, &MainWindow::zoomChanged);
 
     //setting up menu Debug
-    connect(m_ui->actionToneGenerator, &QAction::triggered, this, &MainWindow::startGenerator);
+    connect(m_ui->actionToneGenerator, &QAction::triggered, this, &MainWindow::startStopGenerator);
 
     {
         auto widgetAction = new QWidgetAction(this);
@@ -200,9 +200,13 @@ void MainWindow::zoomChanged()
     m_ui->widget->setFactor(zoomlevel/100.f);
 }
 
-void MainWindow::startGenerator()
+void MainWindow::startStopGenerator()
 {
-    m_generator = nullptr;
+    if(m_generator){
+        m_generator = nullptr;
+        return;
+    }
+
     m_generator = std::make_unique<DebugToneGenerator>();
     m_generator->setDevice(m_outputDevices.at(m_outputDeviceGroup.actions().indexOf(m_outputDeviceGroup.checkedAction())));
     m_generator->setSamplerate(samplerate());
