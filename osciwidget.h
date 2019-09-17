@@ -40,6 +40,9 @@ protected:
     void timerEvent(QTimerEvent *event) override;
 
 private:
+    void updateFrameBuffer();
+
+private:
     float m_factor{2.f};
     int m_fps{30}, m_afterglow{175};
     float m_lightspeed{35.f};

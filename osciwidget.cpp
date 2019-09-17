@@ -56,11 +56,16 @@ void OsciWidget::paintEvent(QPaintEvent *event)
         m_statsTimer.restart();
     }
 
+    QPainter painter(this);
+    painter.drawPixmap(0, 0, m_pixmap);
+}
+
+void OsciWidget::updateFrameBuffer()
+{
     if (m_pixmap.size() != size())
         m_pixmap = QPixmap(size());
 
-    QPainter painter;
-    painter.begin(&m_pixmap);
+    QPainter painter(&m_pixmap);
 
     // darkening last frame
     painter.setCompositionMode(QPainter::CompositionMode_Multiply);
@@ -100,21 +105,14 @@ void OsciWidget::paintEvent(QPaintEvent *event)
         m_lastPoint = p;
     }
 
-    painter.setOpacity(1);
-    painter.resetTransform();
-
-    painter.end();
-
-    painter.begin(this);
-    painter.drawPixmap(0, 0, m_pixmap);
-    painter.end();
-
     m_buffer.clear();
 }
 
 void OsciWidget::timerEvent(QTimerEvent *event)
 {
     QWidget::timerEvent(event);
-    if (event->timerId() == m_redrawTimerId)
+    if (event->timerId() == m_redrawTimerId){
+        updateFrameBuffer();
         repaint();
+    }
 }
