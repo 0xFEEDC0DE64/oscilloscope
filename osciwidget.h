@@ -40,20 +40,23 @@ protected:
     void timerEvent(QTimerEvent *event) override;
 
 private:
-    void updateFrameBuffer();
+    void updateDrawBuffer();
 
 private:
     float m_factor{1.f};
     int m_fps{30};
-    float m_afterglow{0.2};
+    float m_afterglow{0.01};
     float m_lightspeed{35.f};
 
     std::vector<SamplePair> m_buffer;
 
     int m_frameCounter{0}, m_callbacksCounter{0}, m_samplesCounter{0};
     QElapsedTimer m_statsTimer;
+    QElapsedTimer m_bufferTimer;
 
     int m_redrawTimerId;
     QPointF m_lastPoint;
+    size_t m_lastFrame;
     QPixmap m_pixmap;
+    void darkenFrame();
 };

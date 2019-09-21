@@ -9,10 +9,17 @@
 // system includes
 #include <cmath>
 
-OsciWidget::OsciWidget(QWidget *parent) :
-    QOpenGLWidget{parent},
-    m_redrawTimerId(startTimer(1000/m_fps))
+qint32 framesForDuration(qint64 duration){
+    return qint32(44100 * duration / 1000000LL);
+}
+
+
+OsciWidget::OsciWidget(QWidget *parent)
+    : QOpenGLWidget{parent}
+    , m_redrawTimerId(startTimer(1000/m_fps, Qt::PreciseTimer))
+    , m_lastFrame{0}
 {
+    m_bufferTimer.start();
     m_statsTimer.start();
 }
 
@@ -27,16 +34,18 @@ void OsciWidget::setFps(int fps)
 
     m_fps = fps;
 
-    m_redrawTimerId = startTimer(1000/m_fps);
+    m_redrawTimerId = startTimer(1000/m_fps, Qt::PreciseTimer);
 }
 
-void OsciWidget::setAfterglow(float afterglow){
+void OsciWidget::setAfterglow(float afterglow)
+{
     m_afterglow = afterglow;
     // percentage of the image that should be visible after one second
     // i.e. factor^fps=afterglow -> factor = afterglow^(1/fps)
 }
 
-void OsciWidget::setLightspeed(int lightspeed) {
+void OsciWidget::setLightspeed(int lightspeed)
+{
     const auto temp = (float(lightspeed)/20.f);
     m_lightspeed = temp*temp*temp;
     qDebug() << m_lightspeed;
@@ -49,6 +58,8 @@ void OsciWidget::renderSamples(const SamplePair *begin, const SamplePair *end)
     m_samplesCounter += std::distance(begin, end);
 
     m_buffer.insert(m_buffer.end(), begin, end);
+    //m_bufferTimer.restart();
+    //qDebug() << m_statsTimer.elapsed();
 }
 
 void OsciWidget::paintEvent(QPaintEvent *event)
@@ -69,10 +80,21 @@ void OsciWidget::paintEvent(QPaintEvent *event)
     painter.drawPixmap(0, 0, m_pixmap);
 }
 
-void OsciWidget::updateFrameBuffer()
+void OsciWidget::darkenFrame()
+{
+    QPainter painter(&m_pixmap);
+
+    painter.setCompositionMode(QPainter::CompositionMode_Multiply);
+    painter.setPen({});
+    auto afterglowColor = 255 * pow(m_afterglow, 1.0/m_fps);
+    painter.setBrush(QColor(afterglowColor, afterglowColor, afterglowColor));
+    painter.drawRect(m_pixmap.rect());
+}
+
+void OsciWidget::updateDrawBuffer()
 {
     // Workaround for flickering (do not update, when there is no new data)
-    if(m_buffer.empty()) return;
+    //if(m_buffer.empty()) return;
 
     if (m_pixmap.size() != size())
     {
@@ -80,19 +102,11 @@ void OsciWidget::updateFrameBuffer()
         m_pixmap.fill(Qt::black);
     }
 
+    darkenFrame();
+
     QPainter painter(&m_pixmap);
-
-    // darkening last frame
-    painter.setCompositionMode(QPainter::CompositionMode_Multiply);
-    painter.setPen({});
-    auto afterglowColor = 255 * pow(m_afterglow, 1.0/m_fps);
-    painter.setBrush(QColor(afterglowColor, afterglowColor, afterglowColor));
-    painter.drawRect(m_pixmap.rect());
-
-    // drawing new lines ontop
     painter.translate(m_pixmap.width()/2, m_pixmap.height()/2);
     painter.scale(m_factor * m_pixmap.width() / 2.0, m_factor * m_pixmap.height() / 2.0);
-    painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
 
     QPen pen;
     pen.setCosmetic(true); // let pen be scale invariant
@@ -100,30 +114,44 @@ void OsciWidget::updateFrameBuffer()
     pen.setColor(QColor(0, 255, 0));
     painter.setPen(pen);
 
-    for (const auto &i : m_buffer)
+    qint64 samplesUsed = 0;
+    double timeConstant = log(m_afterglow);
+
+    auto duration = m_bufferTimer.elapsed()*1000;
+    qint32 framesCnt = framesForDuration(duration);
+    //qDebug() << framesCnt << duration;
+
+    for (size_t idx = 0; idx < framesCnt && idx < m_buffer.size(); ++idx)
     {
+        const auto &frame = m_buffer[idx];
+        double time = (m_buffer.size() - samplesUsed) / 44100.0;
+
         const QPointF p{
-            float(i.first) / std::numeric_limits<qint16>::max(),
-            float(-i.second) / std::numeric_limits<qint16>::max()
+            float(frame.first) / std::numeric_limits<qint16>::max(),
+            float(-frame.second) / std::numeric_limits<qint16>::max()
         };
 
         const QLineF line(m_lastPoint, p);
+        auto beamOpacity = std::min(1.0, 1. / ((line.length() * m_lightspeed) + 1));
+        auto beamDecay = exp(time*timeConstant);
+        //qDebug() << time << beamDecay;
 
-        painter.setOpacity(std::min(1.0, 1. / ((line.length() * m_lightspeed) + 1)));
+        painter.setOpacity(beamDecay*beamOpacity);
 
         painter.drawLine(m_lastPoint, p);
 
         m_lastPoint = p;
+        ++samplesUsed;
     }
 
-    m_buffer.clear();
+    //m_buffer.clear();
 }
 
 void OsciWidget::timerEvent(QTimerEvent *event)
 {
     QWidget::timerEvent(event);
     if (event->timerId() == m_redrawTimerId){
-        updateFrameBuffer();
+        updateDrawBuffer();
         repaint();
     }
 }
