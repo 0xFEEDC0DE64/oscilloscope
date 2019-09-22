@@ -48,8 +48,9 @@ private:
     float m_decayTime{25.0};
     float m_lightspeed{35.f};
 
-    std::vector<SamplePair> m_buffer;
-    std::vector<SamplePair>::iterator m_bufferOffset;
+    typedef std::vector<SamplePair> SampleBuffer;
+    SampleBuffer m_buffer;
+    SampleBuffer::iterator m_bufferOffset;
 
     int m_frameCounter{0}, m_callbacksCounter{0}, m_samplesCounter{0};
     QElapsedTimer m_statsTimer;
@@ -60,4 +61,6 @@ private:
     QPointF m_lastPoint;
     QPixmap m_pixmap;
     void darkenFrame();
+    void drawBuffer(SampleBuffer::iterator &bufferPos, const SampleBuffer::iterator &end);
+    void resizeDrawBuffer();
 };

@@ -113,19 +113,9 @@ void OsciWidget::darkenFrame()
     //m_pixmap.fill(Qt::black);
 }
 
-void OsciWidget::updateDrawBuffer()
+
+void OsciWidget::drawBuffer(SampleBuffer::iterator &bufferPos, const SampleBuffer::iterator &end)
 {
-    // If there is no new data do not update
-    if(m_buffer.empty()) return;
-
-    if (m_pixmap.size() != size())
-    {
-        m_pixmap = QPixmap(size());
-        m_pixmap.fill(Qt::black);
-    }
-
-    darkenFrame();
-
     QPainter painter(&m_pixmap);
     painter.translate(m_pixmap.width()/2, m_pixmap.height()/2);
     painter.scale(m_factor * m_pixmap.width() / 2.0, m_factor * m_pixmap.height() / 2.0);
@@ -136,18 +126,9 @@ void OsciWidget::updateDrawBuffer()
     pen.setColor(QColor(0, 255, 0));
     painter.setPen(pen);
 
-
-    // persistance time is the time it needs to decay to 1/e ~ 36,7%
-
-    auto duration = 1000*(m_bufferTimer.elapsed()-m_lastTime);
-    auto framesOffset = framesForDuration(duration);
-    //qDebug() << framesOffset << m_buffer.size()-framesOffset << m_bufferOffset - m_buffer.begin();
-
-    //m_bufferBegin = m_buffer.begin();
-    auto bufferEnd = m_buffer.begin() + framesOffset;
-    for (;m_bufferOffset < bufferEnd && m_bufferOffset != m_buffer.end(); ++m_bufferOffset)
+    for (;bufferPos < end; ++bufferPos)
     {
-        const auto &frame = *m_bufferOffset;
+        const auto &frame = *bufferPos;
 
         const QPointF p{
             float(frame.first) / std::numeric_limits<qint16>::max(),
@@ -156,21 +137,43 @@ void OsciWidget::updateDrawBuffer()
 
         const QLineF line(m_lastPoint, p);
 
-        // the time of one sample is 1/samplerate
-        // the brightness
         auto beamOpacity = std::min(1.0, 1. / ((line.length() * m_lightspeed) + 1));
 
 
-        double time = 1000.0 * std::distance(m_bufferOffset, bufferEnd) / 44100.0;
+        double time = 1000.0 * std::distance(bufferPos, end) / 44100.0;
         auto beamDecay = exp(-time/m_decayTime);
-        //qDebug() << time << beamDecay;
 
         painter.setOpacity(beamDecay*beamOpacity);
-
         painter.drawLine(m_lastPoint, p);
 
         m_lastPoint = p;
     }
+}
+
+void OsciWidget::resizeDrawBuffer()
+{
+    if (m_pixmap.size() != size())
+    {
+        m_pixmap = QPixmap(size());
+        m_pixmap.fill(Qt::black);
+    }
+}
+
+void OsciWidget::updateDrawBuffer()
+{
+    // If there is no new data do not update
+    if(m_buffer.empty()) return;
+
+    resizeDrawBuffer();
+    darkenFrame();
+    // persistance time is the time it needs to decay to 1/e ~ 36,7%
+
+    auto duration = 1000*(m_bufferTimer.elapsed()-m_lastTime);
+    size_t framesOffset = framesForDuration(duration);
+    //qDebug() << framesOffset << m_buffer.size()-framesOffset << m_bufferOffset - m_buffer.begin();
+
+    auto bufferEnd = m_buffer.begin() + std::min(framesOffset, m_buffer.size());
+    drawBuffer(m_bufferOffset, bufferEnd);
 }
 
 void OsciWidget::timerEvent(QTimerEvent *event)
