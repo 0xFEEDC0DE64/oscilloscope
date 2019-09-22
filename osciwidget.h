@@ -21,7 +21,7 @@ public:
 
     float factor() const { return m_factor; }
     int fps() const { return m_fps; }
-    float afterglow() const { return m_afterglow; }
+    float afterglow() const { return m_decayTime; }
     int lightspeed() const;
 
 signals:
@@ -44,19 +44,20 @@ private:
 
 private:
     float m_factor{1.f};
-    int m_fps{30};
-    float m_afterglow{0.01};
+    int m_fps{60};
+    float m_decayTime{25.0};
     float m_lightspeed{35.f};
 
     std::vector<SamplePair> m_buffer;
+    std::vector<SamplePair>::iterator m_bufferOffset;
 
     int m_frameCounter{0}, m_callbacksCounter{0}, m_samplesCounter{0};
     QElapsedTimer m_statsTimer;
     QElapsedTimer m_bufferTimer;
+    qint64 m_lastTime;
 
     int m_redrawTimerId;
     QPointF m_lastPoint;
-    size_t m_lastFrame;
     QPixmap m_pixmap;
     void darkenFrame();
 };

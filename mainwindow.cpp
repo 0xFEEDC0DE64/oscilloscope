@@ -18,7 +18,7 @@
 namespace {
 constexpr int samplerates[] = { 44100, 48000, 96000, 192000 };
 
-constexpr int refreshrates[] = { 15, 30, 50, 60 };
+constexpr int refreshrates[] = { 1, 15, 30, 50, 60 };
 
 constexpr int zoomlevels[] = { 50, 75, 100, 200, 400, 800 };
 
@@ -125,8 +125,8 @@ MainWindow::MainWindow(QWidget *parent) :
         auto layout = new QFormLayout(widget);
         {
             auto input = new QDoubleSpinBox;
-            input->setRange(0, 1.0);
-            input->setSingleStep(0.1);
+            input->setRange(0, 10000.0);
+            input->setSingleStep(1.0);
             input->setValue(m_ui->widget->afterglow());
             connect(input, qOverload<double>(&QDoubleSpinBox::valueChanged), m_ui->widget, &OsciWidget::setAfterglow);
             layout->addRow(tr("Afterglow:"), input);
