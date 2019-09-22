@@ -42,7 +42,7 @@ void BaseToneGenerator::start()
     format.setCodec("audio/pcm");
     format.setByteOrder(QAudioFormat::LittleEndian);
 
-    m_private = std::make_unique<BaseToneGeneratorPrivate>(*this, m_device, format);
+    m_private = std::unique_ptr<BaseToneGeneratorPrivate>(new BaseToneGeneratorPrivate(*this, m_device, format));
     m_private->output.start(&m_private->helper);
 
 }

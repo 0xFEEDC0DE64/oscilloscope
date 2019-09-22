@@ -44,7 +44,7 @@ void AudioDevice::start()
     format.setCodec("audio/pcm");
     format.setByteOrder(QAudioFormat::LittleEndian);
 
-    m_private = std::make_unique<AudioDevicePrivate>(*this, m_device, format);
+    m_private = std::unique_ptr<AudioDevicePrivate>(new AudioDevicePrivate(*this, m_device, format));
     m_private->input.start(&m_private->helper);
     //m_private->input.setBufferSize(m_samplerate/m_framerate*sizeof(qint16)*2);
 }
