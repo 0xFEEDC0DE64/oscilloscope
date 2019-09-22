@@ -12,6 +12,9 @@ cache:
     - ~/.ccache
     - qt5
 
+before_install:
+  - sudo apt-get install -y libgl1-mesa-dev libglu1-mesa-dev
+
 install:
   - mkdir -p qt5
   - if [ ! -d qt5/.git ] ; then rm qt5 -Rf ; git clone --branch=5.10 git://code.qt.io/qt/qt5.git ; fi
