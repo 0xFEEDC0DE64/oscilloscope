@@ -54,13 +54,13 @@ private:
 
     int m_frameCounter{0}, m_callbacksCounter{0}, m_samplesCounter{0};
     QElapsedTimer m_statsTimer;
-    QElapsedTimer m_bufferTimer;
-    qint64 m_lastTime;
+    QElapsedTimer m_globalTimer;
+    qint64 m_lastBufferUpdate;
 
     int m_redrawTimerId;
     QPointF m_lastPoint;
     QPixmap m_pixmap;
     void darkenFrame();
-    void drawBuffer(SampleBuffer::iterator &bufferPos, const SampleBuffer::iterator &end);
+    void drawBuffer(SampleBuffer::iterator &bufferPos, const SampleBuffer::iterator &end, QColor color);
     void resizeDrawBuffer();
 };
