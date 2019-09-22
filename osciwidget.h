@@ -45,8 +45,8 @@ private:
 private:
     float m_factor{1.f};
     int m_fps{60};
-    float m_decayTime{25.0};
-    float m_lightspeed{35.f};
+    float m_decayTime{29.0};
+    float m_lightspeed{18.f};
 
     typedef std::vector<SamplePair> SampleBuffer;
     SampleBuffer m_buffer;
