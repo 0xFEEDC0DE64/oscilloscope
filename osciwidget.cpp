@@ -64,8 +64,11 @@ void OsciWidget::renderSamples(const SamplePair *begin, const SamplePair *end)
 
     if(m_bufferTimer.elapsed()-m_lastTime > 5000)
     {
-        qDebug() << "deleting: " << m_bufferOffset - m_buffer.begin();
+        //qDebug() << "deleting: " << m_bufferOffset - m_buffer.begin() << m_buffer.size();
+        // Delete drawn frames
         //m_buffer.erase(m_buffer.begin(), m_bufferOffset);
+
+        // TODO improve by drawing remaining(undrawn) buffer instead
         m_buffer.clear();
         offset = 0;
 
