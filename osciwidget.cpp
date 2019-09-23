@@ -9,8 +9,10 @@
 // system includes
 #include <cmath>
 
-qint32 framesForDuration(qint64 duration){
-    return qint32(44100 * duration / 1000000LL);
+namespace {
+    qint32 framesForDuration(qint64 duration){
+        return qint32(44100 * duration / 1000000LL);
+    }
 }
 
 
