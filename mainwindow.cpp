@@ -10,6 +10,7 @@
 #include <QWidgetAction>
 #include <QFormLayout>
 #include <QSpinBox>
+#include <QShortcut>
 #include <QDebug>
 
 // system includes
@@ -141,6 +142,22 @@ MainWindow::MainWindow(QWidget *parent) :
         widgetAction->setDefaultWidget(widget);
         m_ui->menuDebug->addAction(widgetAction);
     }
+
+    // TODO cleanup when we have clean a strategy for implementing shortcuts and actions
+    auto toggleZen = new QShortcut(QKeySequence(tr("Z")), this);
+    connect(toggleZen, &QShortcut::activated, this, [=](){
+        setWindowFlags(windowFlags() ^ Qt::FramelessWindowHint);
+        setWindowState(windowState() ^ Qt::WindowFullScreen);
+        show();
+        menuBar()->setVisible(!menuBar()->isVisible());
+        statusBar()->setVisible(!statusBar()->isVisible());
+        QCursor *currentCursor = QGuiApplication::overrideCursor();
+        if(!currentCursor || *currentCursor != Qt::BlankCursor){
+            QGuiApplication::setOverrideCursor(Qt::BlankCursor);
+        }else{
+            QGuiApplication::restoreOverrideCursor();
+        }
+    });
 
     // autostart
     if (m_inputDevices.isEmpty())
