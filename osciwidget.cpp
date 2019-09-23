@@ -64,7 +64,7 @@ void OsciWidget::renderSamples(const SamplePair *begin, const SamplePair *end)
 
     auto offset = std::distance(m_buffer.begin(), m_bufferOffset);
 
-    if(m_globalTimer.elapsed()-m_lastBufferUpdate > 5000)
+    if(m_globalTimer.elapsed()-m_lastBufferUpdate > 2000)
     {
         //qDebug() << "deleting: " << m_bufferOffset - m_buffer.begin() << m_buffer.size();
         // Delete drawn frames
