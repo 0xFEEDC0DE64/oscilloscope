@@ -125,7 +125,10 @@ void OsciWidget::drawBuffer(SampleBuffer::iterator &bufferPos, const SampleBuffe
     QPainter painter(&m_pixmap);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.translate(m_pixmap.width()/2, m_pixmap.height()/2);
-    painter.scale(m_factor * m_pixmap.width() / 2.0, m_factor * m_pixmap.height() / 2.0);
+
+    // ensure 1:1 ratio
+    auto smallerSide = std::min(m_pixmap.width(), m_pixmap.height());
+    painter.scale(m_factor * smallerSide/ 2.0, m_factor * smallerSide/ 2.0);
 
     QPen pen;
     pen.setCosmetic(true); // let pen be scale invariant
