@@ -3,8 +3,6 @@
 // Qt includes
 #include <QAudioOutput>
 
-namespace
-{
 //! private helper to allow QAudioOutput to read from a io device
 class BaseToneGeneratorHelper : public QIODevice
 {
@@ -18,7 +16,7 @@ private:
     BaseToneGenerator &m_generator;
 };
 
-class BaseToneGeneratorPrivate
+class BaseToneGenerator::BaseToneGeneratorPrivate
 {
 public:
     BaseToneGeneratorPrivate(BaseToneGenerator &generator, const QAudioDeviceInfo &audioDeviceInfo, const QAudioFormat &format);
@@ -27,8 +25,6 @@ public:
     BaseToneGeneratorHelper helper;
     QAudioOutput output;
 };
-
-}
 
 BaseToneGenerator::BaseToneGenerator() = default;
 
@@ -58,7 +54,6 @@ void BaseToneGenerator::stop()
     m_private = nullptr;
 }
 
-namespace {
 BaseToneGeneratorHelper::BaseToneGeneratorHelper(BaseToneGenerator &generator, QObject *parent) :
     QIODevice{parent}, m_generator{generator}
 {
@@ -80,8 +75,7 @@ qint64 BaseToneGeneratorHelper::writeData(const char *data, qint64 len)
     qFatal("writing is not allowed!");
 }
 
-BaseToneGeneratorPrivate::BaseToneGeneratorPrivate(BaseToneGenerator &generator, const QAudioDeviceInfo &audioDeviceInfo, const QAudioFormat &format) :
+BaseToneGenerator::BaseToneGeneratorPrivate::BaseToneGeneratorPrivate(BaseToneGenerator &generator, const QAudioDeviceInfo &audioDeviceInfo, const QAudioFormat &format) :
     helper{generator}, output{audioDeviceInfo, format}
 {
-}
 }

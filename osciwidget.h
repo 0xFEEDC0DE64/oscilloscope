@@ -21,7 +21,7 @@ public:
 
     float factor() const { return m_factor; }
     int fps() const { return m_fps; }
-    int afterglow() const { return m_afterglow; }
+    float afterglow() const { return m_decayTime; }
     int lightspeed() const;
 
 signals:
@@ -30,7 +30,7 @@ signals:
 public slots:
     void setFactor(float factor) { m_factor = factor; }
     void setFps(int fps);
-    void setAfterglow(int afterglow) { m_afterglow = afterglow; }
+    void setAfterglow(float afterglow);
     void setLightspeed(int lightspeed);
 
     void renderSamples(const SamplePair *begin, const SamplePair *end);
@@ -40,16 +40,27 @@ protected:
     void timerEvent(QTimerEvent *event) override;
 
 private:
-    float m_factor{2.f};
-    int m_fps{30}, m_afterglow{175};
-    float m_lightspeed{35.f};
+    void updateDrawBuffer();
 
-    std::vector<SamplePair> m_buffer;
+private:
+    float m_factor{1.f};
+    int m_fps{60};
+    float m_decayTime{29.0};
+    float m_lightspeed{18.f};
+
+    typedef std::vector<SamplePair> SampleBuffer;
+    SampleBuffer m_buffer;
+    SampleBuffer::iterator m_bufferOffset;
 
     int m_frameCounter{0}, m_callbacksCounter{0}, m_samplesCounter{0};
     QElapsedTimer m_statsTimer;
+    QElapsedTimer m_globalTimer;
+    qint64 m_lastBufferUpdate;
 
     int m_redrawTimerId;
     QPointF m_lastPoint;
     QPixmap m_pixmap;
+    void darkenFrame();
+    void drawBuffer(SampleBuffer::iterator &bufferPos, const SampleBuffer::iterator &end, QColor color);
+    void resizeDrawBuffer();
 };

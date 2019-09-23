@@ -2,7 +2,7 @@
 language: cpp
 os: linux
 sudo: false
-dist: trusty
+dist: bionic
 compiler:
   - gcc
   - clang
@@ -11,6 +11,11 @@ cache:
   directories:
     - ~/.ccache
     - qt5
+
+before_install:
+  - sudo apt-get install -y libgl1-mesa-dev libglu1-mesa-dev
+  - sudo apt-get install -y libasound2-dev
+  - sudo apt-get install -y libpulse-dev
 
 install:
   - mkdir -p qt5

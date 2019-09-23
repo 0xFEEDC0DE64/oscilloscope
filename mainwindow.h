@@ -28,7 +28,7 @@ private slots:
     void stop();
     void refreshRateChanged();
     void zoomChanged();
-    void startGenerator();
+    void startStopGenerator();
 
 private:
     int samplerate() const;

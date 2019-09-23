@@ -1,8 +1,9 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
-// system includes
-#include <stdexcept>
+// local includes
+#include "audiodevice.h"
+#include "debugtonegenerator.h"
 
 // Qt includes
 #include <QLabel>
@@ -11,14 +12,13 @@
 #include <QSpinBox>
 #include <QDebug>
 
-// local includes
-#include "audiodevice.h"
-#include "debugtonegenerator.h"
+// system includes
+#include <stdexcept>
 
 namespace {
 constexpr int samplerates[] = { 44100, 48000, 96000, 192000 };
 
-constexpr int refreshrates[] = { 15, 30, 50, 60 };
+constexpr int refreshrates[] = { 1, 15, 30, 50, 60 };
 
 constexpr int zoomlevels[] = { 50, 75, 100, 200, 400, 800 };
 
@@ -117,17 +117,18 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(&m_zoomlevelsGroup, &QActionGroup::triggered, this, &MainWindow::zoomChanged);
 
     //setting up menu Debug
-    connect(m_ui->actionToneGenerator, &QAction::triggered, this, &MainWindow::startGenerator);
+    connect(m_ui->actionToneGenerator, &QAction::triggered, this, &MainWindow::startStopGenerator);
 
     {
         auto widgetAction = new QWidgetAction(this);
         auto widget = new QWidget;
         auto layout = new QFormLayout(widget);
         {
-            auto input = new QSpinBox;
-            input->setRange(0, 255);
+            auto input = new QDoubleSpinBox;
+            input->setRange(0, 10000.0);
+            input->setSingleStep(1.0);
             input->setValue(m_ui->widget->afterglow());
-            connect(input, qOverload<int>(&QSpinBox::valueChanged), m_ui->widget, &OsciWidget::setAfterglow);
+            connect(input, qOverload<double>(&QDoubleSpinBox::valueChanged), m_ui->widget, &OsciWidget::setAfterglow);
             layout->addRow(tr("Afterglow:"), input);
         }
         {
@@ -199,9 +200,13 @@ void MainWindow::zoomChanged()
     m_ui->widget->setFactor(zoomlevel/100.f);
 }
 
-void MainWindow::startGenerator()
+void MainWindow::startStopGenerator()
 {
-    m_generator = nullptr;
+    if(m_generator){
+        m_generator = nullptr;
+        return;
+    }
+
     m_generator = std::make_unique<DebugToneGenerator>();
     m_generator->setDevice(m_outputDevices.at(m_outputDeviceGroup.actions().indexOf(m_outputDeviceGroup.checkedAction())));
     m_generator->setSamplerate(samplerate());
