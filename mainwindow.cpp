@@ -10,24 +10,25 @@
 #include <QWidgetAction>
 #include <QFormLayout>
 #include <QSpinBox>
+#include <QShortcut>
 #include <QDebug>
 
 // system includes
 #include <stdexcept>
 
 namespace {
-constexpr int samplerates[] = { 44100, 48000, 96000, 192000 };
+    constexpr int samplerates[] = { 44100, 48000, 96000, 192000 };
 
-constexpr int refreshrates[] = { 1, 15, 30, 50, 60 };
+    constexpr int refreshrates[] = { 1, 15, 30, 50, 60 };
 
-constexpr int zoomlevels[] = { 50, 75, 100, 200, 400, 800 };
+    constexpr int zoomlevels[] = { 50, 75, 100, 200, 400, 800 };
 
-template<typename T>
-void setActionsEnabled(const T &actions, bool enabled)
-{
-    for(auto action : actions)
-        action->setEnabled(enabled);
-}
+    template<typename T>
+    void setActionsEnabled(const T &actions, bool enabled)
+    {
+        for(auto action : actions)
+            action->setEnabled(enabled);
+    }
 }
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -141,6 +142,22 @@ MainWindow::MainWindow(QWidget *parent) :
         widgetAction->setDefaultWidget(widget);
         m_ui->menuDebug->addAction(widgetAction);
     }
+
+    // TODO cleanup when we have clean a strategy for implementing shortcuts and actions
+    auto toggleZen = new QShortcut(QKeySequence(tr("Z")), this);
+    connect(toggleZen, &QShortcut::activated, this, [=](){
+        setWindowFlags(windowFlags() ^ Qt::FramelessWindowHint);
+        setWindowState(windowState() ^ Qt::WindowFullScreen);
+        show();
+        menuBar()->setVisible(!menuBar()->isVisible());
+        statusBar()->setVisible(!statusBar()->isVisible());
+        QCursor *currentCursor = QGuiApplication::overrideCursor();
+        if(!currentCursor || *currentCursor != Qt::BlankCursor){
+            QGuiApplication::setOverrideCursor(Qt::BlankCursor);
+        }else{
+            QGuiApplication::restoreOverrideCursor();
+        }
+    });
 
     // autostart
     if (m_inputDevices.isEmpty())

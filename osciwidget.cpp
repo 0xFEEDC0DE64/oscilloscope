@@ -9,8 +9,10 @@
 // system includes
 #include <cmath>
 
-qint32 framesForDuration(qint64 duration){
-    return qint32(44100 * duration / 1000000LL);
+namespace {
+    qint32 framesForDuration(qint64 duration){
+        return qint32(44100 * duration / 1000000LL);
+    }
 }
 
 
@@ -62,7 +64,7 @@ void OsciWidget::renderSamples(const SamplePair *begin, const SamplePair *end)
 
     auto offset = std::distance(m_buffer.begin(), m_bufferOffset);
 
-    if(m_globalTimer.elapsed()-m_lastBufferUpdate > 5000)
+    if(m_globalTimer.elapsed()-m_lastBufferUpdate > 2000)
     {
         //qDebug() << "deleting: " << m_bufferOffset - m_buffer.begin() << m_buffer.size();
         // Delete drawn frames
@@ -123,7 +125,10 @@ void OsciWidget::drawBuffer(SampleBuffer::iterator &bufferPos, const SampleBuffe
     QPainter painter(&m_pixmap);
     painter.setRenderHint(QPainter::Antialiasing);
     painter.translate(m_pixmap.width()/2, m_pixmap.height()/2);
-    painter.scale(m_factor * m_pixmap.width() / 2.0, m_factor * m_pixmap.height() / 2.0);
+
+    // ensure 1:1 ratio
+    auto smallerSide = std::min(m_pixmap.width(), m_pixmap.height());
+    painter.scale(m_factor * smallerSide/ 2.0, m_factor * smallerSide/ 2.0);
 
     QPen pen;
     pen.setCosmetic(true); // let pen be scale invariant
